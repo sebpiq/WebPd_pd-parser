@@ -191,8 +191,9 @@ describe('parsing', function() {
 
     it('should parse simple patch', function() {
       const pd = parsing.parse(TEST_PATCHES.simple)
-      assert.equal(Object.keys(pd).length, 1)
-      const patch = pd[0]
+      assert.equal(Object.keys(pd.patches).length, 1)
+      assert.equal(Object.keys(pd.arrays).length, 0)
+      const patch = pd.patches[0]
 
       assert.deepEqual(patch, {
         id: '0',
@@ -210,8 +211,9 @@ describe('parsing', function() {
 
     it('should parse objects and controls rightly', function() {
       const pd = parsing.parse(TEST_PATCHES.node_elems)
-      assert.equal(Object.keys(pd).length, 1)
-      const patch = pd[0]
+      assert.equal(Object.keys(pd.patches).length, 1)
+      assert.equal(Object.keys(pd.arrays).length, 0)
+      const patch = pd.patches[0]
 
       assert.deepEqual(patch.nodes[0],
         {id: 0, proto: 'floatatom', args: [0, 0, '-', '-'], layout: {
@@ -276,9 +278,11 @@ describe('parsing', function() {
 
     it('should parse array rightly', function() {
       const pd = parsing.parse(TEST_PATCHES.arrays)
-      assert.equal(Object.keys(pd).length, 2)
-      const patch = pd[0]
-      const arraySubpatch = pd[1]
+      assert.equal(Object.keys(pd.patches).length, 2)
+      assert.equal(Object.keys(pd.arrays).length, 1)
+      const patch = pd.patches[0]
+      const arraySubpatch = pd.patches[1]
+      const array = pd.arrays[0]
 
       assert.deepEqual(patch, {
         id: '0',
@@ -293,26 +297,29 @@ describe('parsing', function() {
 
       assert.deepEqual(arraySubpatch, {
         id: '1',
-        layout: {x: 0, y: 0, width: 450, height: 300, openOnLoad: 0},
+        layout: {x: 0, y: 0, width: 450, height: 300, openOnLoad: '0'},
         args: ['(subpatch)'],
         nodes: [
-          {
-            id: 0, proto: 'table', args: ['myTable', 35],
-            data:
-              [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,
-              1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4,
-              2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 0, 0, 0, 0, 0]
-          }
+          {id: 0, proto: 'array', refId: '0'}
         ],
         connections: [],
+      })
+
+      assert.deepEqual({...array, data: roundArray(array.data, 5)}, {
+        id: '0', args: ['myTable', 35],
+        data:
+          [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,
+          1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4,
+          2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 0, 0, 0, 0, 0]
       })
     })
 
     it('should parse graph rightly', function() {
       const pd = parsing.parse(TEST_PATCHES.graphs)
-      assert.equal(Object.keys(pd).length, 2)
-      const patch = pd[0]
-      const graphSubpatch = pd[1]
+      assert.equal(Object.keys(pd.patches).length, 2)
+      assert.equal(Object.keys(pd.arrays).length, 0)
+      const patch = pd.patches[0]
+      const graphSubpatch = pd.patches[1]
 
       assert.deepEqual(patch, {
         id: '0',
@@ -341,10 +348,11 @@ describe('parsing', function() {
 
     it('should parse subpatches rightly', function() {
       const pd = parsing.parse(TEST_PATCHES.subpatches)
-      assert.equal(Object.keys(pd).length, 3)
-      const patch = pd[0]
-      const subpatch1 = pd[1]
-      const subpatch2 = pd[2]
+      assert.equal(Object.keys(pd.patches).length, 3)
+      assert.equal(Object.keys(pd.arrays).length, 0)
+      const patch = pd.patches[0]
+      const subpatch1 = pd.patches[1]
+      const subpatch2 = pd.patches[2]
   
       assert.deepEqual(patch, {
         id: '0',
@@ -396,8 +404,9 @@ describe('parsing', function() {
 
     it('should parse object size as saved in pd vanilla', function() {
       const pd = parsing.parse(TEST_PATCHES.object_size_pd_vanilla)
-      assert.equal(Object.keys(pd).length, 1)
-      const patch = pd[0]
+      assert.equal(Object.keys(pd.patches).length, 1)
+      assert.equal(Object.keys(pd.arrays).length, 0)
+      const patch = pd.patches[0]
 
       assert.equal(patch.nodes[0].layout.width, 30)
       assert.equal(patch.nodes[1].layout.width, 40)

@@ -100,17 +100,25 @@ export const parseArgs = (args) => {
 // Parses a Pd file, creates and returns a graph from it
 // export const parse = (pdString: PdString) => {
 export const parse = (pdString) => {
-    const tokenizedLines = tokenizeLines(pdString)
-    const [_, patchesMap] = extractSubpatches(tokenizedLines)
-    const pd = {}
-    Object.values(patchesMap).forEach(({ id, layout, args, tokenizedLines }) => {
-      const nodesAndConnections = recursParse(tokenizedLines)
-      pd[id] = {
-        id, args, layout,
-        ...nodesAndConnections
-      }
-    })
-    return pd
+  const tokenizedLines = tokenizeLines(pdString)
+  const [_, patchesMap] = extractSubpatches(tokenizedLines)
+  const pd = {
+    patches: {},
+    arrays: {},
+  }
+  Object.values(patchesMap).forEach(({ id, layout, args, tokenizedLines }) => {
+    const [tokenizedLinesWithoutArrays, arraysMap] = extractArrays(tokenizedLines, pd.arrays)
+    const nodesAndConnections = recursParse(tokenizedLinesWithoutArrays)
+    pd.patches[id] = {
+      id, args, layout,
+      ...nodesAndConnections
+    }
+    pd.arrays = {
+      ...pd.arrays,
+      ...arraysMap
+    }
+  })
+  return pd
 }
 
 // interface TokenizedLine {
@@ -146,6 +154,59 @@ export const tokenizeLines = (pdString) => {
   return tokenizedLines
 }
 
+const HYDRATORS = {
+  '#N canvas': ({ tokens }) => {
+    const data = {
+      layout: {
+        x: parseInt(tokens[2], 10), 
+        y: parseInt(tokens[3], 10),
+        width: parseInt(tokens[4], 10), 
+        height: parseInt(tokens[5], 10),
+      },
+      args: [tokens[6]],
+    }
+    if (typeof tokens[7] !== 'undefined') {
+      data.layout.openOnLoad = tokens[7]
+    }
+    return data
+  },
+
+  'PATCH': ({ tokens }) => {
+    const patchId = tokens[1]
+    const canvasType = tokens[4]
+    const args = []
+    // add subpatch name
+    if (canvasType === 'pd') {
+      args.push(tokens[5])
+    }
+
+    return {
+      subpatch: patchId,
+      proto: canvasType,
+      args,
+      layout: {
+        x: parseInt(tokens[2], 10), 
+        y: parseInt(tokens[3], 10),
+      },
+    }
+  },
+
+  'ARRAY': ({ tokens }) => ({
+    proto: 'array',
+    refId: tokens[1]
+  }),
+
+  '#X array': ({ tokens }) => {
+    const arrayName = tokens[2]
+    const arraySize = parseFloat(tokens[3])
+    return {
+      args: [arrayName, arraySize],
+      data: new Float32Array(arraySize)
+    }
+  }
+
+}
+
 // Recursively extract subpatches
 export const extractSubpatches = (tokenizedLines, patchesMap = {}, lineIndexOffset = 0) => {
   patchesMap = {...patchesMap}
@@ -159,22 +220,13 @@ export const extractSubpatches = (tokenizedLines, patchesMap = {}, lineIndexOffs
     //================ #N : frameset ================//
     // First line of the patch file, initializes the patch
     if (chunkType === '#N' && tokens[1] === 'canvas' && lineIndex === 0) {
-      tokenizedLines.shift()
       currentPatch = {
         id: `${Object.keys(patchesMap).length}`,
-        layout: {
-          x: parseInt(tokens[2], 10), 
-          y: parseInt(tokens[3], 10),
-          width: parseInt(tokens[4], 10), 
-          height: parseInt(tokens[5], 10),
-        },
-        args: [tokens[6]],
         tokenizedLines: [],
-      }
-      if (typeof tokens[7] !== 'undefined') {
-        currentPatch.layout.openOnLoad = tokens[7]
+        ...HYDRATORS['#N canvas'](tokenizedLines[0]),
       }
       patchesMap[currentPatch.id] = currentPatch
+      tokenizedLines.shift()
 
     // If not first line, starts a subpatch
     } else if (chunkType === '#N' && tokens[1] === 'canvas') {
@@ -198,37 +250,79 @@ export const extractSubpatches = (tokenizedLines, patchesMap = {}, lineIndexOffs
   return [tokenizedLines, patchesMap]
 }
 
+const extractArrays = (tokenizedLines, arraysMap = {}) => {
+  arraysMap = {...arraysMap}
+  tokenizedLines = [...tokenizedLines]
+  const remainingTokenizedLines = []
+
+  // remind the last table for handling correctly 
+  // the table related instructions which might follow.
+  let currentArray = null
+
+  while(tokenizedLines.length) {
+    const { chunkType, tokens } = tokenizedLines[0]
+
+    // ---- array : start of an array definition ---- //
+    if (chunkType === '#X' && tokens[1] === 'array') {
+      currentArray = {
+        id: `${Object.keys(arraysMap).length}`,
+        ...HYDRATORS['#X array'](tokenizedLines[0])
+      }
+      arraysMap[currentArray.id] = currentArray
+      remainingTokenizedLines.push({ 
+        chunkType: 'ARRAY',
+        tokens: ['ARRAY', currentArray.id],
+      })
+      tokenizedLines.shift()
+
+    } else if (chunkType === '#A') {
+      if (!currentArray) {
+        throw new Error('got table data outside of a table.')
+      }
+
+      // reads in part of an array/table of data, starting at the index specified in this line
+      // name of the array/table comes from the the '#X array' and '#X restore' matches above
+      const indexOffset = parseFloat(tokens[1])
+      tokens.slice(2).forEach((val, i) => {
+        val = parseFloat(val)
+        if (_isNumber(val)) {
+          currentArray.data[indexOffset + i] = val
+        }
+      })
+      tokenizedLines.shift()
+
+    } else {
+      remainingTokenizedLines.push(tokenizedLines.shift())
+    }
+
+  }
+
+  return [remainingTokenizedLines, arraysMap]
+}
+
 const recursParse = (tokenizedLines) => {
 
   let currentTable = null       // last table name to add samples to
   let idCounter = -1
-  const nextId = function() { idCounter++; return idCounter }
+  const nextId = () => ++idCounter
   const patch = { nodes: [], connections: [] }
 
-  for (const {chunkType, tokens, lineAfterComma} of tokenizedLines) {
-      //console.log(chunkType, tokens)
-    
-    if (chunkType === 'PATCH') {
-      const patchId = tokens[1]
-      const canvasType = tokens[4]
-      const args = []
-      // add subpatch name
-      if (canvasType === 'pd') {
-        args.push(tokens[5])
-      }
+  for (const tokenizedLine of tokenizedLines) {
+    const {chunkType, tokens, lineAfterComma} = tokenizedLine
 
+    if (chunkType === 'PATCH') {
       patch.nodes.push({
         id: nextId(),
-        subpatch: patchId,
-        proto: canvasType,
-        args,
-        layout: {
-          x: parseInt(tokens[2], 10), 
-          y: parseInt(tokens[3], 10),
-        },
+        ...HYDRATORS['PATCH'](tokenizedLine)
       })
     
-      //================ #X : patch elements ================// 
+    } else if (chunkType === 'ARRAY') {
+      patch.nodes.push({
+        id: nextId(),
+        ...HYDRATORS['ARRAY'](tokenizedLine)
+      })
+
+    //================ #X : patch elements ================// 
     } else if (chunkType === '#X') {
       var elementType = tokens[1]
 
@@ -249,7 +343,9 @@ const recursParse = (tokenizedLines) => {
           proto = elementType
           args = tokens.slice(4)
         }
-        if (elementType === 'text') args = [tokens.slice(4).join(' ')]
+        if (elementType === 'text') {
+          args = [tokens.slice(4).join(' ')]
+        }
 
         // Handling controls' creation arguments
         result = parseControls(proto, args, layout)
