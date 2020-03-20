@@ -289,7 +289,7 @@ describe('parsing', function() {
         layout: {x: 667, y: 72, width: 551, height: 408},
         args: ['10'],
         nodes: [
-          {id: 0, proto: 'graph', args: [], layout: {x: 157, y: 26}, subpatch: '1'},
+          {id: 0, proto: 'graph', args: [], layout: {x: 157, y: 26}, refId: '1'},
           {id: 1, proto: 'osc~', args: [440], layout: {x: 19, y: 370}},
         ],
         connections: [],
@@ -300,7 +300,7 @@ describe('parsing', function() {
         layout: {x: 0, y: 0, width: 450, height: 300, openOnLoad: '0'},
         args: ['(subpatch)'],
         nodes: [
-          {id: 0, proto: 'array', refId: '0'}
+          {id: 0, proto: 'array', refId: '0', args: []}
         ],
         connections: [],
       })
@@ -328,7 +328,7 @@ describe('parsing', function() {
         nodes: [
           {
             id: 0,
-            subpatch: '1',
+            refId: '1',
             proto: 'graph',
             args: [],
             layout: { x: 100, y: 20 }
@@ -360,7 +360,7 @@ describe('parsing', function() {
         args: ['10'],
         nodes: [
           {id: 0, proto: 'osc~', args: [], layout: {x: 78, y: 81}},
-          {id: 1, proto: 'pd', args: ['subPatch'], layout: {x: 79, y: 117}, subpatch: '1'},
+          {id: 1, proto: 'pd', args: ['subPatch'], layout: {x: 79, y: 117}, refId: '1'},
           {id: 2, proto: 'dac~', args: [], layout: {x: 80, y: 175}}
         ],
         connections: [
@@ -379,7 +379,7 @@ describe('parsing', function() {
           {id: 1, proto: 'delwrite~', args: ['myDel'], layout: {x: 47, y: 83}},
           {id: 2, proto: 'delread~', args: ['myDel'], layout: {x: 47, y: 126}},
           {id: 3, proto: 'outlet~', args: [], layout: {x: 48, y: 165}},
-          {id: 4, proto: 'pd', args: ['subSubPatch'], layout: {x: 183, y: 83}, subpatch: '2'},
+          {id: 4, proto: 'pd', args: ['subSubPatch'], layout: {x: 183, y: 83}, refId: '2'},
         ],
         connections: [
           {source: {id: 0, port: 0}, sink: {id: 1, port: 0}},
