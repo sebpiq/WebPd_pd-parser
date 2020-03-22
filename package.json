@@ -9,7 +9,7 @@
     "test-bail": "TS_NODE_FILES=true mocha -b --require ts-node/register --extensions ts,tsx src 'src/**/*test.{ts,tsx}'",
     "build": "tsc",
     "prettier": "prettier --write src/",
-    "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix"
+    "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "author": "",
   "license": "ISC",
@@ -32,11 +32,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@types/lodash.defaults": "^4.2.6",
     "@types/lodash.isnumber": "^3.0.6",
     "@types/lodash.isstring": "^4.0.6",
     "@webpd/types": "file:../WebPd_types",
-    "lodash.defaults": "^4.2.0",
     "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1"
   }

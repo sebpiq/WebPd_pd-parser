@@ -10,7 +10,6 @@
  */
 
 // See http://puredata.info/docs/developer/PdFileFormat for the Pd file format reference
-import defaults from 'lodash.defaults'
 import { HYDRATORS } from './hydrate'
 import { isNumber } from './args'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
@@ -19,28 +18,6 @@ const NODES = ['obj', 'floatatom', 'symbolatom', 'msg', 'text']
 
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
-
-const buildPatch = (patchData: Partial<PdJson.Patch>): PdJson.Patch =>
-    defaults({}, patchData, {
-        id: 'NOT ASSIGNED',
-        nodes: {},
-        connections: [],
-        args: [],
-    })
-
-const buildArray = (arrayData: Partial<PdJson.PdArray>): PdJson.PdArray =>
-    defaults({}, arrayData, {
-        id: 'NOT ASSIGNED',
-        args: [],
-        data: [],
-    })
-
-const buildNode = (nodeData: Partial<PdJson.Node>): PdJson.GenericNode =>
-    defaults({}, nodeData, {
-        id: 'NOT ASSIGNED',
-        proto: 'NOT ASSIGNED',
-        args: [],
-    })
 
 // Parses a Pd file, creates and returns a graph from it
 export const parse = (pdString: Pd.PdString): PdJson.Pd => {
@@ -87,9 +64,7 @@ export const parsePatches = (
         // First line of the patch / subpatch, initializes the patch
         if (_tokensMatch(tokens, '#N', 'canvas') && lineIndex === 0) {
             currentPatch = HYDRATORS.patch(
-                buildPatch({
-                    id: `${Object.keys(pd.patches).length}`,
-                }),
+                `${Object.keys(pd.patches).length}`,
                 tokenizedLines[0]
             )
             pd.patches[currentPatch.id] = currentPatch
@@ -140,9 +115,7 @@ const parseArrays = (
         // start of an array definition
         if (_tokensMatch(tokens, '#X', 'array')) {
             currentArray = HYDRATORS.array(
-                buildArray({
-                    id: `${Object.keys(pd.arrays).length}`,
-                }),
+                `${Object.keys(pd.arrays).length}`,
                 tokenizedLines[0]
             )
             pd.arrays[currentArray.id] = currentArray
@@ -195,33 +168,27 @@ const parseGraph = (
     for (const tokenizedLine of tokenizedLines) {
         const { tokens } = tokenizedLine
 
+        let nodeHydrator: (
+            id: PdJson.ObjectLocalId,
+            tokenizedLine: TokenizedLine
+        ) => PdJson.GenericNode | null
         if (_tokensMatch(tokens, 'PATCH')) {
-            const node = HYDRATORS.nodePatch(
-                buildNode({
-                    id: nextId(),
-                }),
-                tokenizedLine
-            )
-            patch.nodes[node.id] = node
+            nodeHydrator = HYDRATORS.nodePatch
         } else if (_tokensMatch(tokens, 'ARRAY')) {
-            const node = HYDRATORS.nodeArray(
-                buildNode({
-                    id: nextId(),
-                }),
-                tokenizedLine
-            )
-            patch.nodes[node.id] = node
+            nodeHydrator = HYDRATORS.nodeArray
         } else if (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
-            const node = HYDRATORS.nodeGeneric(
-                buildNode({
-                    id: nextId(),
-                }),
-                tokenizedLine
-            )
+            nodeHydrator = HYDRATORS.nodeGeneric
+        }
+
+        if (nodeHydrator) {
+            const node = nodeHydrator(nextId(), tokenizedLine)
             patch.nodes[node.id] = node
-        } else if (_tokensMatch(tokens, '#X', 'connect')) {
+            continue
+        }
+
+        if (_tokensMatch(tokens, '#X', 'connect')) {
             patch.connections.push(HYDRATORS.connection(tokenizedLine))
 
             // coords : visual range of framsets

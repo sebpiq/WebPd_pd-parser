@@ -1,8 +1,8 @@
 export type Tokens = Array<string>
 
 export interface TokenizedLine {
-    tokens: Tokens;
-    lineAfterComma: string;
+    tokens: Tokens
+    lineAfterComma: string
 }
 
 // Regular expression to split tokens in a message.

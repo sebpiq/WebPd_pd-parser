@@ -17,7 +17,7 @@ export enum ControlType {
 
 export const HYDRATORS = {
     patch: (
-        newPatch: PdJson.Patch,
+        id: PdJson.ObjectGlobalId,
         { tokens }: TokenizedLine
     ): PdJson.Patch => {
         const layout: PdJson.PatchLayout = {
@@ -27,9 +27,11 @@ export const HYDRATORS = {
             height: parseInt(tokens[5], 10),
         }
         const patch: PdJson.Patch = {
-            ...newPatch,
+            id,
             layout,
             args: [tokens[6]],
+            nodes: {},
+            connections: [],
         }
         if (typeof tokens[7] !== 'undefined') {
             patch.layout.openOnLoad = parseBoolArg(tokens[7])
@@ -38,20 +40,20 @@ export const HYDRATORS = {
     },
 
     array: (
-        newArray: PdJson.PdArray,
+        id: PdJson.ObjectGlobalId,
         { tokens }: TokenizedLine
     ): PdJson.PdArray => {
         const arrayName = tokens[2]
         const arraySize = parseFloat(tokens[3])
         return {
-            ...newArray,
+            id,
             args: [arrayName, arraySize],
             data: Array(arraySize).fill(0),
         }
     },
 
     nodePatch: (
-        newNode: PdJson.GenericNode,
+        id: PdJson.ObjectLocalId,
         { tokens }: TokenizedLine
     ): PdJson.GenericNode => {
         const canvasType = tokens[4]
@@ -62,7 +64,7 @@ export const HYDRATORS = {
         }
 
         return {
-            ...newNode,
+            id,
             proto: canvasType,
             refId: tokens[1],
             args,
@@ -74,16 +76,17 @@ export const HYDRATORS = {
     },
 
     nodeArray: (
-        newNode: PdJson.GenericNode,
+        id: PdJson.ObjectLocalId,
         { tokens }: TokenizedLine
     ): PdJson.GenericNode => ({
-        ...newNode,
+        id,
+        args: [],
         proto: 'array',
         refId: tokens[1],
     }),
 
     nodeGeneric: (
-        newNode: PdJson.GenericNode,
+        id: PdJson.ObjectLocalId,
         { tokens, lineAfterComma }: TokenizedLine
     ): PdJson.GenericNode => {
         const elementType = tokens[1]
@@ -110,7 +113,7 @@ export const HYDRATORS = {
             y: parseNumberArg(tokens[3]),
         }
         let node: PdJson.GenericNode = {
-            ...newNode,
+            id,
             layout,
             proto,
             args,
