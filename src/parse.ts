@@ -13,7 +13,7 @@
 
 import isNumber from "lodash.isnumber";
 import isString from "lodash.isstring";
-import { Tokens, TokenizedLine, ControlType } from './types';
+import { Tokens, TokenizedLine, ControlType } from "./types";
 
 const NODES = ["obj", "floatatom", "symbolatom", "msg", "text"];
 
@@ -30,13 +30,10 @@ const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\\;/g;
 const LINES_RE = /(#((.|\r|\n)*?)[^\\\\])\r{0,1}\n{0,1};\r{0,1}(\n|$)/gi;
 
 // Helper function to reverse a string
-const _reverseString = (s: string): string =>
-  s
-    .split("")
-    .reverse()
-    .join("");
+const _reverseString = (s: string): string => s.split("").reverse().join("");
 
-const _isNumber = (obj: number | string): obj is number => isNumber(obj) && !isNaN(obj);
+const _isNumber = (obj: number | string): obj is number =>
+  isNumber(obj) && !isNaN(obj);
 
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
   values.every((value, i) => value === tokens[i]);
@@ -81,24 +78,24 @@ export const parseBoolArg = (val: PdJson.ObjectArgument): boolean => {
   } else if (isString(val)) {
     const num = parseInt(val, 10);
     if (!_isNumber(num)) {
-      throw new Error(`invalid number ${val}`)
+      throw new Error(`invalid number ${val}`);
     }
     return !!num;
   } else {
-    throw new Error(`invalid input ${val}`)
+    throw new Error(`invalid input ${val}`);
   }
-}
+};
 
 // Parses a Pd file, creates and returns a graph from it
 export const parse = (pdString: Pd.PdString): PdJson.Pd => {
   const pd: PdJson.Pd = {
     patches: {},
-    arrays: {}
+    arrays: {},
   };
   const tokenizedLines = tokenizeLines(pdString);
   const [_, patchTokenizedLinesMap] = parsePatches(pd, tokenizedLines);
-  Object.values(pd.patches).forEach(patch => {
-    const tokenizedLines = patchTokenizedLinesMap[patch.id]
+  Object.values(pd.patches).forEach((patch) => {
+    const tokenizedLines = patchTokenizedLinesMap[patch.id];
     const [tokenizedLinesWithoutArrays, arraysMap] = parseArrays(
       tokenizedLines,
       pd.arrays
@@ -107,7 +104,7 @@ export const parse = (pdString: Pd.PdString): PdJson.Pd => {
     pd.patches[patch.id] = patch;
     pd.arrays = {
       ...pd.arrays,
-      ...arraysMap
+      ...arraysMap,
     };
   });
   return pd;
@@ -139,16 +136,16 @@ export const tokenizeLines = (pdString: Pd.PdString): Array<TokenizedLine> => {
 };
 
 const HYDRATORS = {
-  "#N canvas": ({ tokens } : TokenizedLine) => {
+  "#N canvas": ({ tokens }: TokenizedLine) => {
     const layout: PdJson.PatchLayout = {
       x: parseInt(tokens[2], 10),
       y: parseInt(tokens[3], 10),
       width: parseInt(tokens[4], 10),
       height: parseInt(tokens[5], 10),
-    }
+    };
     const data = {
       layout,
-      args: [tokens[6]]
+      args: [tokens[6]],
     };
     if (typeof tokens[7] !== "undefined") {
       data.layout.openOnLoad = parseBoolArg(tokens[7]);
@@ -156,7 +153,7 @@ const HYDRATORS = {
     return data;
   },
 
-  PATCH: ({ tokens } : TokenizedLine) => {
+  PATCH: ({ tokens }: TokenizedLine) => {
     const canvasType = tokens[4];
     const args = [];
     // add subpatch name
@@ -170,44 +167,44 @@ const HYDRATORS = {
       args,
       layout: {
         x: parseInt(tokens[2], 10),
-        y: parseInt(tokens[3], 10)
-      }
+        y: parseInt(tokens[3], 10),
+      },
     };
   },
 
-  ARRAY: ({ tokens } : TokenizedLine) => ({
+  ARRAY: ({ tokens }: TokenizedLine) => ({
     proto: "array",
     refId: tokens[1],
     args: [] as Array<PdJson.ObjectArgument>,
   }),
 
-  "#X array": ({ tokens } : TokenizedLine) => {
+  "#X array": ({ tokens }: TokenizedLine) => {
     const arrayName = tokens[2];
     const arraySize = parseFloat(tokens[3]);
     return {
       args: [arrayName, arraySize],
-      data: new Float32Array(arraySize)
+      data: Array(arraySize).fill(0),
     };
   },
 
-  "#X connect": ({ tokens } : TokenizedLine) => ({
+  "#X connect": ({ tokens }: TokenizedLine) => ({
     source: {
       id: tokens[2],
-      port: parseInt(tokens[3], 10)
+      port: parseInt(tokens[3], 10),
     },
     sink: {
       id: tokens[4],
-      port: parseInt(tokens[5], 10)
-    }
-  })
+      port: parseInt(tokens[5], 10),
+    },
+  }),
 };
 
 // Recursively parse subpatches
 export const parsePatches = (
   pd: PdJson.Pd,
   tokenizedLines: Array<TokenizedLine>,
-  patchTokenizedLinesMap: {[globalId: string]: Array<TokenizedLine>} = {},
-): [Array<TokenizedLine>, {[globalId: string]: Array<TokenizedLine>}] => {
+  patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> } = {}
+): [Array<TokenizedLine>, { [globalId: string]: Array<TokenizedLine> }] => {
   tokenizedLines = [...tokenizedLines];
   patchTokenizedLinesMap = { ...patchTokenizedLinesMap };
   let currentPatch: PdJson.Patch | null = null;
@@ -223,22 +220,23 @@ export const parsePatches = (
         id: `${Object.keys(pd.patches).length}`,
         nodes: {},
         connections: [],
-        ...HYDRATORS["#N canvas"](tokenizedLines[0])
+        ...HYDRATORS["#N canvas"](tokenizedLines[0]),
       };
       pd.patches[currentPatch.id] = currentPatch;
-      patchTokenizedLinesMap[currentPatch.id] = []
+      patchTokenizedLinesMap[currentPatch.id] = [];
       tokenizedLines.shift();
 
-    // If not first line, starts a subpatch
+      // If not first line, starts a subpatch
     } else if (_tokensMatch(tokens, "#N", "canvas")) {
       const [remainingTokenizedLines, updatedTokenizedLinesMap] = parsePatches(
         pd,
         tokenizedLines,
+        patchTokenizedLinesMap
       );
       tokenizedLines = remainingTokenizedLines;
       patchTokenizedLinesMap = updatedTokenizedLinesMap;
 
-    // Restore : ends a canvas definition
+      // Restore : ends a canvas definition
     } else if (_tokensMatch(tokens, "#X", "restore")) {
       tokenizedLines[0].tokens[0] = "PATCH";
       tokenizedLines[0].tokens[1] = currentPatch.id;
@@ -254,9 +252,9 @@ export const parsePatches = (
 };
 
 const parseArrays = (
-    tokenizedLines: Array<TokenizedLine>, 
-    arraysMap: {[globalId: string]: PdJson.PdArray} = {}
-  ): [Array<TokenizedLine>, {[globalId: string]: PdJson.PdArray}] => {
+  tokenizedLines: Array<TokenizedLine>,
+  arraysMap: { [globalId: string]: PdJson.PdArray } = {}
+): [Array<TokenizedLine>, { [globalId: string]: PdJson.PdArray }] => {
   arraysMap = { ...arraysMap };
   tokenizedLines = [...tokenizedLines];
   const remainingTokenizedLines: Array<TokenizedLine> = [];
@@ -272,16 +270,16 @@ const parseArrays = (
     if (_tokensMatch(tokens, "#X", "array")) {
       currentArray = {
         id: `${Object.keys(arraysMap).length}`,
-        ...HYDRATORS["#X array"](tokenizedLines[0])
+        ...HYDRATORS["#X array"](tokenizedLines[0]),
       };
       arraysMap[currentArray.id] = currentArray;
       remainingTokenizedLines.push({
         tokens: ["ARRAY", currentArray.id],
-        lineAfterComma: ''
+        lineAfterComma: "",
       });
       tokenizedLines.shift();
 
-    // array data to add to the current array
+      // array data to add to the current array
     } else if (_tokensMatch(tokens, "#A")) {
       if (!currentArray) {
         throw new Error("got table data outside of a table.");
@@ -298,7 +296,7 @@ const parseArrays = (
       });
       tokenizedLines.shift();
 
-    // A normal chunk to add to the current patch
+      // A normal chunk to add to the current patch
     } else {
       remainingTokenizedLines.push(tokenizedLines.shift());
     }
@@ -307,7 +305,10 @@ const parseArrays = (
   return [remainingTokenizedLines, arraysMap];
 };
 
-const recursParse = (tokenizedLines: Array<TokenizedLine>, patch: PdJson.Patch) => {
+const recursParse = (
+  tokenizedLines: Array<TokenizedLine>,
+  patch: PdJson.Patch
+) => {
   let idCounter = -1;
   const nextId = () => `${++idCounter}`;
 
@@ -315,22 +316,22 @@ const recursParse = (tokenizedLines: Array<TokenizedLine>, patch: PdJson.Patch) 
     const { tokens, lineAfterComma } = tokenizedLine;
 
     if (_tokensMatch(tokens, "PATCH")) {
-      const nodeId = nextId()
+      const nodeId = nextId();
       patch.nodes[nodeId] = {
         id: nodeId,
-        ...HYDRATORS["PATCH"](tokenizedLine)
+        ...HYDRATORS["PATCH"](tokenizedLine),
       };
     } else if (_tokensMatch(tokens, "ARRAY")) {
-      const nodeId = nextId()
+      const nodeId = nextId();
       patch.nodes[nodeId] = {
         id: nodeId,
-        ...HYDRATORS["ARRAY"](tokenizedLine)
+        ...HYDRATORS["ARRAY"](tokenizedLine),
       };
     } else if (_tokensMatch(tokens, "#X", "connect")) {
       patch.connections.push(HYDRATORS["#X connect"](tokenizedLine));
 
       // ---- NODES : object/control instantiation ---- //
-    } else if (NODES.some(nodeType => _tokensMatch(tokens, "#X", nodeType))) {
+    } else if (NODES.some((nodeType) => _tokensMatch(tokens, "#X", nodeType))) {
       const elementType = tokens[1];
       let proto; // the object name
       let args: Tokens; // the construction args for the object
@@ -350,20 +351,22 @@ const recursParse = (tokenizedLines: Array<TokenizedLine>, patch: PdJson.Patch) 
         args = [tokens.slice(4).join(" ")];
       }
 
-      const nodeId = nextId()
+      const nodeId = nextId();
       const node: PdJson.Node = {
         id: nodeId,
         proto,
-        layout: { 
-          x: parseNumberArg(tokens[2]), 
-          y: parseNumberArg(tokens[3]), 
+        layout: {
+          x: parseNumberArg(tokens[2]),
+          y: parseNumberArg(tokens[3]),
         },
-        args: []
-      }
+        args: [],
+      };
 
       // Handling controls' creation arguments
       if (Object.keys(ControlType).includes(node.proto)) {
         parseControls(node as PdJson.ControlNode, args);
+      } else {
+        node.args = args;
       }
 
       // Handling stuff after the comma
@@ -373,12 +376,13 @@ const recursParse = (tokenizedLines: Array<TokenizedLine>, patch: PdJson.Patch) 
         var afterCommaTokens = lineAfterComma.split(TOKENS_RE);
         while (afterCommaTokens.length) {
           var command = afterCommaTokens.shift();
-          if (command === "f") node.layout.width = parseNumberArg(afterCommaTokens.shift());
+          if (command === "f")
+            node.layout.width = parseNumberArg(afterCommaTokens.shift());
         }
       }
 
       // Add the object to the graph
-      node.args = args.map(parseArg)
+      node.args = node.args.map(parseArg);
       patch.nodes[nodeId] = node;
 
       // ---- coords : visual range of framsets ---- //
@@ -391,15 +395,13 @@ const recursParse = (tokenizedLines: Array<TokenizedLine>, patch: PdJson.Patch) 
 
 // This is put here just for readability of the main `parse` function
 const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
-
   if (node.proto === "floatatom" || node.proto === "symbolatom") {
     // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
     node.layout.width = parseNumberArg(args[0]);
-    node.layout.labelPos = args[3];
+    node.layout.labelPos = parseNumberArg(args[3]);
     node.layout.label = args[4];
     // <lower_limit> <upper_limit> <receive> <send>
     node.args = [args[1], args[2], args[5], args[6]];
-
   } else if (node.proto === "bng") {
     // <size> <hold> <interrupt> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color>
     node.layout.size = parseNumberArg(args[0]);
@@ -415,7 +417,6 @@ const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
     node.layout.labelColor = args[13];
     // <init> <send> <receive>
     node.args = [args[3], args[4], args[5]];
-
   } else if (node.proto === "tgl") {
     // <size> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <init_value> <default_value>
     node.layout.size = parseNumberArg(args[0]);
@@ -429,7 +430,6 @@ const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
     node.layout.labelColor = args[11];
     // <init> <send> <receive> <init_value> <default_value>
     node.args = [args[1], args[2], args[3], args[12], args[13]];
-
   } else if (node.proto === "nbx") {
     // !!! doc is inexact here, logHeight is not at the specified position, and initial value of the nbx was missing.
     // <size> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <log_height>
@@ -447,7 +447,6 @@ const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
     node.layout.logHeight = args[17];
     // <min> <max> <init> <send> <receive>
     node.args = [args[2], args[3], args[5], args[6], args[7], args[16]];
-
   } else if (node.proto === "vsl" || node.proto === "hsl") {
     // <width> <height> <bottom> <top> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value> <steady_on_click>
     node.layout.width = parseNumberArg(args[0]);
@@ -469,9 +468,11 @@ const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
       args[5],
       args[6],
       args[7],
-      parseNumberArg(args[2]) + ((parseNumberArg(args[3]) - parseNumberArg(args[2])) * parseNumberArg(args[16])) / 12700
+      parseNumberArg(args[2]) +
+        ((parseNumberArg(args[3]) - parseNumberArg(args[2])) *
+          parseNumberArg(args[16])) /
+          12700,
     ];
-
   } else if (node.proto === "vradio" || node.proto === "hradio") {
     // <size> <new_old> <init> <number> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value>
     node.layout.size = parseNumberArg(args[0]);
@@ -486,7 +487,6 @@ const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
 
     // <new_old> <init> <number> <send> <receive> <default_value>
     node.args = [args[1], args[2], args[3], args[4], args[5], args[14]];
-
   } else if (node.proto === "vu") {
     // <width> <height> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <label_color> <scale> <?>
     node.layout.width = parseNumberArg(args[0]);
@@ -502,7 +502,6 @@ const parseControls = (node: PdJson.ControlNode, args: Tokens): void => {
 
     // <receive> <?>
     node.args = [args[2], args[11]];
-
   } else if (node.proto === "cnv") {
     // <size> <width> <height> <send> <receive> <label> <x_off> <y_off> <font> <font_size> <bg_color> <label_color> <?>
     node.layout.size = parseNumberArg(args[0]);

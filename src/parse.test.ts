@@ -1,12 +1,17 @@
 import path from "path";
 import fs from "fs";
 import assert from "assert";
-import { parse as parseUrl } from "url";
-import * as parsing from "./parse.js";
-import { tokenizeLines, parsePatches, parseBoolArg } from "./parse.js";
-import round from 'lodash.round'
-import { TokenizedLine, Tokens } from "./types.js";
-const __dirname = path.dirname(parseUrl(import.meta.url).path);
+import {
+  tokenizeLines,
+  parsePatches,
+  parseBoolArg,
+  parseNumberArg,
+  parseArg,
+  parse,
+} from "./parse";
+import round from "lodash.round";
+import { TokenizedLine, Tokens } from "./types";
+
 const TEST_PATCHES_DIR = path.resolve(__dirname, "..", "test-patches");
 
 const TEST_PATCHES = {
@@ -21,24 +26,27 @@ const TEST_PATCHES = {
   graphs: fs.readFileSync(path.join(TEST_PATCHES_DIR, "graphs.pd")).toString(),
   object_size_pd_vanilla: fs
     .readFileSync(path.join(TEST_PATCHES_DIR, "object-size-pd-vanilla.pd"))
-    .toString()
+    .toString(),
 };
 
-const roundArray = (array: Float32Array, precision: number): Float32Array => 
-  array.map(val => round(val, precision))
+const roundArray = (array: Array<number>, precision: number): Array<number> =>
+  array.map((val) => round(val, precision));
 
-const assertTokenizedLinesEqual = (actualTokenizedLines: Array<TokenizedLine>, expectedTokens: Array<Tokens>): void => {
+const assertTokenizedLinesEqual = (
+  actualTokenizedLines: Array<TokenizedLine>,
+  expectedTokens: Array<Tokens>
+): void => {
   assert.equal(actualTokenizedLines.length, expectedTokens.length);
   actualTokenizedLines.forEach(({ tokens: actualTokens }, i) => {
     assert.deepEqual(actualTokens, expectedTokens[i]);
   });
 };
 
-describe("parsing", function() {
+describe("parsing", function () {
   describe("parsePatches", () => {
     it("should extract nested subpatches", () => {
       const tokenizedLines = tokenizeLines(TEST_PATCHES.subpatches);
-      const pd: PdJson.Pd = { patches: {}, arrays: {} }
+      const pd: PdJson.Pd = { patches: {}, arrays: {} };
       const [remainingTokenizedLines, patchesTokenizedLines] = parsePatches(
         pd,
         tokenizedLines
@@ -51,7 +59,7 @@ describe("parsing", function() {
         x: 340,
         y: 223,
         width: 450,
-        height: 300
+        height: 300,
       });
       assert.deepEqual(pd.patches[0].args, ["10"]);
       assertTokenizedLinesEqual(patchesTokenizedLines[0], [
@@ -60,7 +68,7 @@ describe("parsing", function() {
         ["#X", "obj", "80", "175", "dac~"],
         ["#X", "connect", "0", "0", "1", "0"],
         ["#X", "connect", "1", "0", "2", "0"],
-        ["#X", "connect", "1", "0", "2", "1"]
+        ["#X", "connect", "1", "0", "2", "1"],
       ]);
 
       // subpatch
@@ -69,7 +77,7 @@ describe("parsing", function() {
         y: 260,
         width: 450,
         height: 300,
-        openOnLoad: "1"
+        openOnLoad: "1",
       });
       assert.deepEqual(pd.patches[1].args, ["mySubpatch"]);
       assertTokenizedLinesEqual(patchesTokenizedLines[1], [
@@ -79,7 +87,7 @@ describe("parsing", function() {
         ["#X", "obj", "48", "165", "outlet~"],
         ["PATCH", "2", "183", "83", "pd", "subSubPatch"],
         ["#X", "connect", "0", "0", "1", "0"],
-        ["#X", "connect", "2", "0", "3", "0"]
+        ["#X", "connect", "2", "0", "3", "0"],
       ]);
 
       // sub-subpatch
@@ -88,92 +96,90 @@ describe("parsing", function() {
         y: 260,
         width: 450,
         height: 300,
-        openOnLoad: "1"
+        openOnLoad: "1",
       });
       assert.deepEqual(pd.patches[2].args, ["subSubPatch"]);
       assertTokenizedLinesEqual(patchesTokenizedLines[2], [
         ["#X", "obj", "67", "67", "outlet~"],
         ["#X", "obj", "66", "32", "phasor~", "-440"],
-        ["#X", "connect", "1", "0", "0", "0"]
+        ["#X", "connect", "1", "0", "0", "0"],
       ]);
     });
   });
 
-  describe('parseBoolArg', () => {
-
-    it('should parse strings correctly', () => {
-      assert.strictEqual(parseBoolArg('0'), false)
-      assert.strictEqual(parseBoolArg('1'), true)
-      assert.strictEqual(parseBoolArg('18'), true)
-    })
-
-    it('should parse numbers correctly', () => {
-      assert.strictEqual(parseBoolArg(0), false)
-      assert.strictEqual(parseBoolArg(1), true)
-      assert.strictEqual(parseBoolArg(18), true)
-    })
-
-    it('should throw error for non-number strings', () => {
-      assert.throws(() => parseBoolArg('AAaarg'))
-    })
-
-    it('should throw error if nor a number, nor a string', () => {
-      assert.throws(() => parseBoolArg({} as string))
-    })
-
-  })
-
-  describe("#parseNumberArg", function() {
-    it("should parse floats rightly", function() {
-      assert.strictEqual(parsing.parseNumberArg("789.9"), 789.9);
-      assert.strictEqual(parsing.parseNumberArg("0"), 0);
-      assert.strictEqual(parsing.parseNumberArg("0."), 0);
-      assert.strictEqual(parsing.parseNumberArg("-0.9"), -0.9);
-      assert.strictEqual(parsing.parseNumberArg("-4e-2"), -0.04);
-      assert.strictEqual(parsing.parseNumberArg("0.558e2"), 55.8);
+  describe("parseBoolArg", () => {
+    it("should parse strings correctly", () => {
+      assert.strictEqual(parseBoolArg("0"), false);
+      assert.strictEqual(parseBoolArg("1"), true);
+      assert.strictEqual(parseBoolArg("18"), true);
     });
 
-    it("return NaN if invalid float", function() {
-      assert.ok(isNaN(parsing.parseNumberArg("bla")));
-      assert.ok(isNaN(parsing.parseNumberArg([1] as unknown as number)));
+    it("should parse numbers correctly", () => {
+      assert.strictEqual(parseBoolArg(0), false);
+      assert.strictEqual(parseBoolArg(1), true);
+      assert.strictEqual(parseBoolArg(18), true);
+    });
+
+    it("should throw error for non-number strings", () => {
+      assert.throws(() => parseBoolArg("AAaarg"));
+    });
+
+    it("should throw error if nor a number, nor a string", () => {
+      assert.throws(() => parseBoolArg({} as string));
     });
   });
 
-  describe("#parseArg", function() {
-    it("should parse numbers rightly", function() {
-      assert.equal(parsing.parseArg(1), 1);
-      assert.equal(parsing.parseArg(0.7e-2), 0.007);
-      assert.equal(parsing.parseArg("1"), 1);
-      assert.equal(parsing.parseArg("0.7e-2"), 0.007);
+  describe("#parseNumberArg", function () {
+    it("should parse floats rightly", function () {
+      assert.strictEqual(parseNumberArg("789.9"), 789.9);
+      assert.strictEqual(parseNumberArg("0"), 0);
+      assert.strictEqual(parseNumberArg("0."), 0);
+      assert.strictEqual(parseNumberArg("-0.9"), -0.9);
+      assert.strictEqual(parseNumberArg("-4e-2"), -0.04);
+      assert.strictEqual(parseNumberArg("0.558e2"), 55.8);
     });
 
-    it("should parse strings rightly", function() {
-      assert.equal(parsing.parseArg("bla"), "bla");
+    it("return NaN if invalid float", function () {
+      assert.ok(isNaN(parseNumberArg("bla")));
+      assert.ok(isNaN(parseNumberArg(([1] as unknown) as number)));
+    });
+  });
+
+  describe("#parseArg", function () {
+    it("should parse numbers rightly", function () {
+      assert.equal(parseArg(1), 1);
+      assert.equal(parseArg(0.7e-2), 0.007);
+      assert.equal(parseArg("1"), 1);
+      assert.equal(parseArg("0.7e-2"), 0.007);
     });
 
-    it("should unescape dollar vars", function() {
-      assert.equal(parsing.parseArg("\\$15"), "$15");
-      assert.equal(parsing.parseArg("\\$15-bla-\\$0"), "$15-bla-$0");
+    it("should parse strings rightly", function () {
+      assert.equal(parseArg("bla"), "bla");
     });
 
-    it("should unescape comas and semicolons", function() {
-      assert.equal(parsing.parseArg("\\,bla"), ",bla");
-      assert.equal(parsing.parseArg("lolo\\;\\,"), "lolo;,");
+    it("should unescape dollar vars", function () {
+      assert.equal(parseArg("\\$15"), "$15");
+      assert.equal(parseArg("\\$15-bla-\\$0"), "$15-bla-$0");
     });
 
-    it("should raise error with invalid args", function() {
-      assert.throws(function() {
-        parsing.parseArg([1, 2] as unknown as PdJson.ObjectArgument);
+    it("should unescape comas and semicolons", function () {
+      assert.equal(parseArg("\\,bla"), ",bla");
+      assert.equal(parseArg("lolo\\;\\,"), "lolo;,");
+    });
+
+    it("should raise error with invalid args", function () {
+      assert.throws(function () {
+        parseArg(([1, 2] as unknown) as PdJson.ObjectArgument);
       });
-      assert.throws(function() {
-        parsing.parseArg(null);
+      assert.throws(function () {
+        parseArg(null);
       });
     });
   });
 
-  describe("#parse", function() {
-    it("should parse simple patch", function() {
-      const pd = parsing.parse(TEST_PATCHES.simple);
+  describe("#parse", function () {
+    it("should parse simple patch", function () {
+      const pd = parse(TEST_PATCHES.simple);
       assert.equal(Object.keys(pd.patches).length, 1);
       assert.equal(Object.keys(pd.arrays).length, 0);
       const patch = pd.patches[0];
@@ -182,22 +188,34 @@ describe("parsing", function() {
         id: "0",
         layout: { x: 778, y: 17, width: 450, height: 300 },
         args: ["10"],
-        nodes: [
-          { id: 0, proto: "loadbang", args: [], layout: { x: 14, y: 13 } },
-          { id: 1, proto: "print", args: ["bla"], layout: { x: 14, y: 34 } }
+        nodes: {
+          "0": {
+            id: "0",
+            proto: "loadbang",
+            args: [],
+            layout: { x: 14, y: 13 },
+          },
+          "1": {
+            id: "1",
+            proto: "print",
+            args: ["bla"],
+            layout: { x: 14, y: 34 },
+          },
+        },
+        connections: [
+          { source: { id: "0", port: 0 }, sink: { id: "1", port: 0 } },
         ],
-        connections: [{ source: { id: 0, port: 0 }, sink: { id: 1, port: 0 } }]
       });
     });
 
-    it("should parse objects and controls rightly", function() {
-      const pd = parsing.parse(TEST_PATCHES.node_elems);
+    it("should parse objects and controls rightly", function () {
+      const pd = parse(TEST_PATCHES.node_elems);
       assert.equal(Object.keys(pd.patches).length, 1);
       assert.equal(Object.keys(pd.arrays).length, 0);
       const patch = pd.patches[0];
 
       assert.deepEqual(patch.nodes[0], {
-        id: 0,
+        id: "0",
         proto: "floatatom",
         args: [0, 0, "-", "-"],
         layout: {
@@ -205,15 +223,15 @@ describe("parsing", function() {
           y: 84,
           width: 5,
           labelPos: 0,
-          label: "-"
-        }
+          label: "-",
+        },
       });
 
       assert.deepEqual(patch.nodes[1], {
         id: 1,
         proto: "msg",
         args: [89],
-        layout: { x: 73, y: 43 }
+        layout: { x: 73, y: 43 },
       });
 
       assert.deepEqual(patch.nodes[2], {
@@ -233,8 +251,8 @@ describe("parsing", function() {
           fgColor: -1,
           labelColor: -1,
           hold: 250,
-          interrupt: 50
-        }
+          interrupt: 50,
+        },
       });
 
       assert.deepEqual(patch.nodes[3], {
@@ -252,8 +270,8 @@ describe("parsing", function() {
           labelFontSize: 4,
           bgColor: -262144,
           fgColor: -1,
-          labelColor: -262144
-        }
+          labelColor: -262144,
+        },
       });
 
       assert.deepEqual(patch.nodes[4], {
@@ -274,8 +292,8 @@ describe("parsing", function() {
           bgColor: -262144,
           fgColor: -1,
           labelColor: -1,
-          logHeight: 256
-        }
+          logHeight: 256,
+        },
       });
 
       assert.deepEqual(patch.nodes[5], {
@@ -296,8 +314,8 @@ describe("parsing", function() {
           bgColor: -262144,
           fgColor: -1,
           labelColor: -1,
-          steadyOnClick: 1
-        }
+          steadyOnClick: 1,
+        },
       });
 
       assert.deepEqual(patch.nodes[6], {
@@ -315,8 +333,8 @@ describe("parsing", function() {
           labelFontSize: 10,
           bgColor: -262144,
           fgColor: -1,
-          labelColor: -1
-        }
+          labelColor: -1,
+        },
       });
 
       assert.deepEqual(patch.nodes[7], {
@@ -335,8 +353,8 @@ describe("parsing", function() {
           labelFontSize: 10,
           bgColor: -66577,
           labelColor: -1,
-          log: 1
-        }
+          log: 1,
+        },
       });
 
       assert.deepEqual(patch.nodes[8], {
@@ -355,15 +373,15 @@ describe("parsing", function() {
           labelFont: 0,
           labelFontSize: 14,
           bgColor: -233017,
-          labelColor: -66577
-        }
+          labelColor: -66577,
+        },
       });
 
       assert.deepEqual(patch.nodes[9], {
         id: 9,
         proto: "symbolatom",
         args: [0, 0, "-", "-"],
-        layout: { x: 255, y: 38, width: 10, labelPos: 0, label: "-" }
+        layout: { x: 255, y: 38, width: 10, labelPos: 0, label: "-" },
       });
 
       assert.deepEqual(patch.nodes[10], {
@@ -384,8 +402,8 @@ describe("parsing", function() {
           bgColor: -262144,
           fgColor: -1,
           labelColor: -1,
-          steadyOnClick: 1
-        }
+          steadyOnClick: 1,
+        },
       });
 
       assert.deepEqual(patch.nodes[11], {
@@ -403,55 +421,62 @@ describe("parsing", function() {
           labelFontSize: 10,
           bgColor: -262144,
           fgColor: -1,
-          labelColor: -1
-        }
+          labelColor: -1,
+        },
       });
 
       assert.deepEqual(patch.nodes[12], {
         id: 12,
         proto: "text",
         args: ["< this comment should be aligned to the hradio"],
-        layout: { x: 205, y: 308 }
+        layout: { x: 205, y: 308 },
       });
 
       assert.deepEqual(patch.connections, [
         { source: { id: 1, port: 0 }, sink: { id: 0, port: 0 } },
         { source: { id: 2, port: 0 }, sink: { id: 0, port: 0 } },
-        { source: { id: 6, port: 0 }, sink: { id: 4, port: 0 } }
+        { source: { id: 6, port: 0 }, sink: { id: 4, port: 0 } },
       ]);
     });
 
-    it("should parse array rightly", function() {
-      const pd = parsing.parse(TEST_PATCHES.arrays);
+    it("should parse array rightly", function () {
+      const pd = parse(TEST_PATCHES.arrays);
       assert.equal(Object.keys(pd.patches).length, 2);
       assert.equal(Object.keys(pd.arrays).length, 1);
-      const patch = pd.patches[0];
-      const arraySubpatch = pd.patches[1];
-      const array = pd.arrays[0];
+      const patch = pd.patches["0"];
+      const arraySubpatch = pd.patches["1"];
+      const array = pd.arrays["0"];
 
       assert.deepEqual(patch, {
         id: "0",
         layout: { x: 667, y: 72, width: 551, height: 408 },
         args: ["10"],
-        nodes: [
-          {
-            id: 0,
+        nodes: {
+          "0": {
+            id: "0",
             proto: "graph",
             args: [],
             layout: { x: 157, y: 26 },
-            refId: "1"
+            refId: "1",
           },
-          { id: 1, proto: "osc~", args: [440], layout: { x: 19, y: 370 } }
-        ],
-        connections: []
+          "1": {
+            id: "1",
+            proto: "osc~",
+            args: [440],
+            layout: { x: 19, y: 370 },
+          },
+        },
+        connections: [],
       });
 
       assert.deepEqual(arraySubpatch, {
         id: "1",
         layout: { x: 0, y: 0, width: 450, height: 300, openOnLoad: "0" },
         args: ["(subpatch)"],
-        nodes: [{ id: 0, proto: "array", refId: "0", args: [] }],
-        connections: []
+        nodes: {
+          "0": { id: "0", proto: "array", refId: "0", args: [] },
+        },
+        connections: [],
       });
 
       assert.deepEqual(
@@ -494,14 +519,14 @@ describe("parsing", function() {
             0,
             0,
             0,
-            0
-          ]
+            0,
+          ],
         }
       );
     });
 
-    it("should parse graph rightly", function() {
-      const pd = parsing.parse(TEST_PATCHES.graphs);
+    it("should parse graph rightly", function () {
+      const pd = parse(TEST_PATCHES.graphs);
       assert.equal(Object.keys(pd.patches).length, 2);
       assert.equal(Object.keys(pd.arrays).length, 0);
       const patch = pd.patches[0];
@@ -511,29 +536,29 @@ describe("parsing", function() {
         id: "0",
         layout: { x: 49, y: 82, width: 450, height: 300 },
         args: ["10"],
-        nodes: [
-          {
-            id: 0,
+        nodes: {
+          "0": {
+            id: "0",
             refId: "1",
             proto: "graph",
             args: [],
-            layout: { x: 100, y: 20 }
-          }
-        ],
-        connections: []
+            layout: { x: 100, y: 20 },
+          },
+        },
+        connections: [],
       });
 
       assert.deepEqual(graphSubpatch, {
         id: "1",
         layout: { x: 0, y: 0, width: 450, height: 300, openOnLoad: "0" },
         args: ["(subpatch)"],
-        nodes: [],
-        connections: []
+        nodes: {},
+        connections: [],
       });
     });
 
-    it("should parse subpatches rightly", function() {
-      const pd = parsing.parse(TEST_PATCHES.subpatches);
+    it("should parse subpatches rightly", function () {
+      const pd = parse(TEST_PATCHES.subpatches);
       assert.equal(Object.keys(pd.patches).length, 3);
       assert.equal(Object.keys(pd.arrays).length, 0);
       const patch = pd.patches[0];
@@ -544,71 +569,86 @@ describe("parsing", function() {
         id: "0",
         layout: { x: 340, y: 223, width: 450, height: 300 },
         args: ["10"],
-        nodes: [
-          { id: 0, proto: "osc~", args: [], layout: { x: 78, y: 81 } },
-          {
-            id: 1,
+        nodes: {
+          "0": { id: "0", proto: "osc~", args: [], layout: { x: 78, y: 81 } },
+          "1": {
+            id: "1",
             proto: "pd",
             args: ["subPatch"],
             layout: { x: 79, y: 117 },
-            refId: "1"
+            refId: "1",
           },
-          { id: 2, proto: "dac~", args: [], layout: { x: 80, y: 175 } }
-        ],
+          "2": { id: "2", proto: "dac~", args: [], layout: { x: 80, y: 175 } },
+        },
         connections: [
           { source: { id: 0, port: 0 }, sink: { id: 1, port: 0 } },
           { source: { id: 1, port: 0 }, sink: { id: 2, port: 0 } },
-          { source: { id: 1, port: 0 }, sink: { id: 2, port: 1 } }
-        ]
+          { source: { id: 1, port: 0 }, sink: { id: 2, port: 1 } },
+        ],
       });
 
       assert.deepEqual(subpatch1, {
         id: "1",
         layout: { x: 447, y: 260, width: 450, height: 300, openOnLoad: 1 },
         args: ["mySubpatch"],
-        nodes: [
-          { id: 0, proto: "inlet~", args: [], layout: { x: 46, y: 39 } },
-          {
-            id: 1,
+        nodes: {
+          "0": { id: "0", proto: "inlet~", args: [], layout: { x: 46, y: 39 } },
+          "1": {
+            id: "1",
             proto: "delwrite~",
             args: ["myDel"],
-            layout: { x: 47, y: 83 }
+            layout: { x: 47, y: 83 },
           },
-          {
-            id: 2,
+          "2": {
+            id: "2",
             proto: "delread~",
             args: ["myDel"],
-            layout: { x: 47, y: 126 }
+            layout: { x: 47, y: 126 },
           },
-          { id: 3, proto: "outlet~", args: [], layout: { x: 48, y: 165 } },
-          {
-            id: 4,
+          "3": {
+            id: "3",
+            proto: "outlet~",
+            args: [],
+            layout: { x: 48, y: 165 },
+          },
+          "4": {
+            id: "4",
             proto: "pd",
             args: ["subSubPatch"],
             layout: { x: 183, y: 83 },
-            refId: "2"
-          }
-        ],
+            refId: "2",
+          },
+        },
         connections: [
           { source: { id: 0, port: 0 }, sink: { id: 1, port: 0 } },
-          { source: { id: 2, port: 0 }, sink: { id: 3, port: 0 } }
-        ]
+          { source: { id: 2, port: 0 }, sink: { id: 3, port: 0 } },
+        ],
       });
 
       assert.deepEqual(subpatch2, {
         id: "2",
         layout: { x: 842, y: 260, width: 450, height: 300, openOnLoad: 1 },
         args: ["subSubPatch"],
-        nodes: [
-          { id: 0, proto: "outlet~", args: [], layout: { x: 67, y: 67 } },
-          { id: 1, proto: "phasor~", args: [-440], layout: { x: 66, y: 32 } }
-        ],
-        connections: [{ source: { id: 1, port: 0 }, sink: { id: 0, port: 0 } }]
+        nodes: {
+          "0": {
+            id: "0",
+            proto: "outlet~",
+            args: [],
+            layout: { x: 67, y: 67 },
+          },
+          "1": {
+            id: "1",
+            proto: "phasor~",
+            args: [-440],
+            layout: { x: 66, y: 32 },
+          },
+        },
+        connections: [{ source: { id: 1, port: 0 }, sink: { id: 0, port: 0 } }],
       });
     });
 
-    it("should parse object size as saved in pd vanilla", function() {
-      const pd = parsing.parse(TEST_PATCHES.object_size_pd_vanilla);
+    it("should parse object size as saved in pd vanilla", function () {
+      const pd = parse(TEST_PATCHES.object_size_pd_vanilla);
       assert.equal(Object.keys(pd.patches).length, 1);
       assert.equal(Object.keys(pd.arrays).length, 0);
       const patch = pd.patches[0];
@@ -617,25 +657,25 @@ describe("parsing", function() {
       assert.equal(patch.nodes[1].layout.width, 40);
     });
 
-    it("should fail with an unknown element", function() {
+    it("should fail with an unknown element", function () {
       var patchStr =
         "#N canvas 778 17 450 300 10;\n" +
         "#X obj 14 13 loadbang;\n" +
         "#X weirdElement 14 34 dac~;\n" +
         "#X connect 0 0 1 0;";
-      assert.throws(function() {
-        var patch = parsing.parse(patchStr);
+      assert.throws(function () {
+        var patch = parse(patchStr);
       });
     });
 
-    it("should fail with an unknown chunk", function() {
+    it("should fail with an unknown chunk", function () {
       var patchStr =
         "#N canvas 778 17 450 300 10;\n" +
         "#X obj 14 13 loadbang;\n" +
         "#WEIRD dac~ 14 34 dac~;\n" +
         "#X connect 0 0 1 0;";
-      assert.throws(function() {
-        var patch = parsing.parse(patchStr);
+      assert.throws(function () {
+        var patch = parse(patchStr);
       });
     });
   });
