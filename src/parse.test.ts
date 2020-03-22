@@ -1,9 +1,9 @@
 import path from 'path'
 import fs from 'fs'
 import assert from 'assert'
-import { tokenizeLines, parsePatches, parse } from './parse'
+import { parsePatches, parse } from './parse'
 import round from 'lodash.round'
-import { TokenizedLine, Tokens } from './types'
+import tokenize, { TokenizedLine, Tokens } from './tokenize'
 
 const TEST_PATCHES_DIR = path.resolve(__dirname, '..', 'test-patches')
 
@@ -14,7 +14,7 @@ const TEST_PATCHES = {
     simple: fs
         .readFileSync(path.join(TEST_PATCHES_DIR, 'simple.pd'))
         .toString(),
-    node_elems: fs
+    nodeElems: fs
         .readFileSync(path.join(TEST_PATCHES_DIR, 'node-elems.pd'))
         .toString(),
     arrays: fs
@@ -23,7 +23,7 @@ const TEST_PATCHES = {
     graphs: fs
         .readFileSync(path.join(TEST_PATCHES_DIR, 'graphs.pd'))
         .toString(),
-    object_size_pd_vanilla: fs
+    objectSizePdVanilla: fs
         .readFileSync(path.join(TEST_PATCHES_DIR, 'object-size-pd-vanilla.pd'))
         .toString(),
 }
@@ -44,7 +44,7 @@ const assertTokenizedLinesEqual = (
 describe('parse', function () {
     describe('parsePatches', () => {
         it('should extract nested subpatches', () => {
-            const tokenizedLines = tokenizeLines(TEST_PATCHES.subpatches)
+            const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
             const emptyPd: PdJson.Pd = { patches: {}, arrays: {} }
             const [
                 pd,
@@ -142,7 +142,7 @@ describe('parse', function () {
         })
 
         it('should parse objects and controls rightly', function () {
-            const pd = parse(TEST_PATCHES.node_elems)
+            const pd = parse(TEST_PATCHES.nodeElems)
             assert.equal(Object.keys(pd.patches).length, 1)
             assert.equal(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
@@ -622,7 +622,7 @@ describe('parse', function () {
         })
 
         it('should parse object size as saved in pd vanilla', function () {
-            const pd = parse(TEST_PATCHES.object_size_pd_vanilla)
+            const pd = parse(TEST_PATCHES.objectSizePdVanilla)
             assert.equal(Object.keys(pd.patches).length, 1)
             assert.equal(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
@@ -638,7 +638,7 @@ describe('parse', function () {
                 '#X weirdElement 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;'
             assert.throws(function () {
-                const patch = parse(patchStr)
+                parse(patchStr)
             })
         })
 
@@ -649,7 +649,7 @@ describe('parse', function () {
                 '#WEIRD dac~ 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;'
             assert.throws(function () {
-                const patch = parse(patchStr)
+                parse(patchStr)
             })
         })
     })

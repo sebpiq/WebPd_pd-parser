@@ -32,9 +32,11 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@types/lodash.defaults": "^4.2.6",
     "@types/lodash.isnumber": "^3.0.6",
     "@types/lodash.isstring": "^4.0.6",
     "@webpd/types": "file:../WebPd_types",
+    "lodash.defaults": "^4.2.0",
     "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1"
   }
