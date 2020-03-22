@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "system",
+        "outDir": "./out",
+        "removeComments": true,
+        "noImplicitAny": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "target": "es6"
+    },
+    "include": [
+        "src",
+        "src/**/*.ts",
+        "@types/**/*.d.ts",
+        "node_modules/@webpd/types/Pd.ts",
+        "node_modules/@webpd/types/PdJson.ts"
+    ]
+}

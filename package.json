@@ -5,16 +5,23 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require ts-node/register --watch-extensions ts,tsx \"src/*test.{ts,tsx}\" [...args]"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/lodash.round": "^4.0.6",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.9.2",
+    "lodash.round": "^4.0.4",
     "mocha": "^7.1.1",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@types/lodash.isnumber": "^3.0.6",
+    "@types/lodash.isstring": "^4.0.6",
+    "@webpd/types": "file:../WebPd_types",
     "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1"
   }
