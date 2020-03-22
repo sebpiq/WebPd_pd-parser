@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import assert from 'assert'
-import { parsePatches, parse } from './parse'
+import parse, { parsePatches } from './parse'
 import round from 'lodash.round'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 

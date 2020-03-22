@@ -10,7 +10,7 @@
  */
 
 // See http://puredata.info/docs/developer/PdFileFormat for the Pd file format reference
-import { HYDRATORS } from './hydrate'
+import hydrate from './hydrate'
 import { isNumber } from './args'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
@@ -20,7 +20,7 @@ const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
 
 // Parses a Pd file, creates and returns a graph from it
-export const parse = (pdString: Pd.PdString): PdJson.Pd => {
+export default (pdString: Pd.PdString): PdJson.Pd => {
     let pd: PdJson.Pd = {
         patches: {},
         arrays: {},
@@ -63,7 +63,7 @@ export const parsePatches = (
 
         // First line of the patch / subpatch, initializes the patch
         if (_tokensMatch(tokens, '#N', 'canvas') && lineIndex === 0) {
-            currentPatch = HYDRATORS.patch(
+            currentPatch = hydrate.patch(
                 `${Object.keys(pd.patches).length}`,
                 tokenizedLines[0]
             )
@@ -114,7 +114,7 @@ const parseArrays = (
 
         // start of an array definition
         if (_tokensMatch(tokens, '#X', 'array')) {
-            currentArray = HYDRATORS.array(
+            currentArray = hydrate.array(
                 `${Object.keys(pd.arrays).length}`,
                 tokenizedLines[0]
             )
@@ -173,13 +173,13 @@ const parseGraph = (
             tokenizedLine: TokenizedLine
         ) => PdJson.GenericNode | null
         if (_tokensMatch(tokens, 'PATCH')) {
-            nodeHydrator = HYDRATORS.nodePatch
+            nodeHydrator = hydrate.nodePatch
         } else if (_tokensMatch(tokens, 'ARRAY')) {
-            nodeHydrator = HYDRATORS.nodeArray
+            nodeHydrator = hydrate.nodeArray
         } else if (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
-            nodeHydrator = HYDRATORS.nodeGeneric
+            nodeHydrator = hydrate.nodeGeneric
         }
 
         if (nodeHydrator) {
@@ -189,7 +189,7 @@ const parseGraph = (
         }
 
         if (_tokensMatch(tokens, '#X', 'connect')) {
-            patch.connections.push(HYDRATORS.connection(tokenizedLine))
+            patch.connections.push(hydrate.connection(tokenizedLine))
 
             // coords : visual range of framsets
         } else if (_tokensMatch(tokens, '#X', 'coords')) {
