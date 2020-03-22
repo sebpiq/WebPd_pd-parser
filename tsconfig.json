@@ -3,7 +3,7 @@
         "module": "commonjs",
         "target": "es6",
         "esModuleInterop": true,
-        "outDir": "./out",
+        "outDir": "./dist",
         "removeComments": true,
         "noImplicitAny": true,
         "preserveConstEnums": true,
