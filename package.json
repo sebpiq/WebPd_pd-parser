@@ -12,7 +12,7 @@
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "author": "",
-  "license": "ISC",
+  "license": "BSD-2-Clause",
   "devDependencies": {
     "@types/lodash.round": "^4.0.6",
     "@types/mocha": "^7.0.2",

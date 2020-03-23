@@ -5,11 +5,10 @@
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  *
- * See https://github.com/sebpiq/pd-fileutils for documentation
+ * See https://github.com/sebpiq/WebPd_pd-parser for documentation
  *
  */
 
-// See http://puredata.info/docs/developer/PdFileFormat for the Pd file format reference
 import hydrate from './hydrate'
 import { isNumber } from './args'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
