@@ -1,40 +1,33 @@
 {
   "name": "@webpd/pd-parser",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Parses Pd file format to JavaScript / TypeScript following the PdJson specification",
   "type": "module",
   "scripts": {
-    "test": "TS_NODE_FILES=true mocha --require ts-node/register --extensions ts,tsx --watch --watch-files src 'src/**/*test.{ts,tsx}'",
-    "test-bail": "TS_NODE_FILES=true mocha -b --require ts-node/register --extensions ts,tsx src 'src/**/*test.{ts,tsx}'",
-    "build": "tsc",
-    "prettier": "prettier --write src/",
-    "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
+    "test-bail": "npm explore @webpd/shared -- npm run test-bail $(pwd)/src/*test.ts",
+    "test-watch": "npm explore @webpd/shared -- npm run test-watch $(pwd)/src/*test.ts",
+    "prettier": "npm explore @webpd/shared -- npm run prettier $(pwd)/src",
+    "eslint": "npm explore @webpd/shared -- npm run eslint $(pwd)/src",
+    "all": "npm run test-bail && npm run prettier && npm run eslint"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebpiq/WebPd_pd-parser.git"
+  },
+  "author": "Sébastien Piquemal",
   "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/sebpiq/WebPd_pd-parser/issues"
+  },
+  "homepage": "https://github.com/sebpiq/WebPd_pd-parser#readme",
   "devDependencies": {
     "@types/lodash.round": "^4.0.6",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "^13.9.2",
-    "@typescript-eslint/eslint-plugin": "^2.24.0",
-    "@typescript-eslint/parser": "^2.24.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "lodash.round": "^4.0.4",
-    "mocha": "^7.1.1",
-    "prettier": "^2.0.1",
-    "ts-node": "^8.6.2",
-    "typescript": "^3.8.3"
+    "lodash.round": "^4.0.4"
   },
   "dependencies": {
     "@types/lodash.isnumber": "^3.0.6",
     "@types/lodash.isstring": "^4.0.6",
-    "@webpd/types": "file:../WebPd_types",
+    "@webpd/shared": "file:../WebPd_shared",
     "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1"
   }
