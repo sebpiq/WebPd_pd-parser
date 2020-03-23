@@ -21,7 +21,6 @@ export default (pdString: Pd.PdString): Array<TokenizedLine> => {
     // use our regular expression to match instances of valid Pd lines
     LINES_RE.lastIndex = 0 // reset lastIndex, in case the previous call threw an error
 
-    // let line: RegExpMatchArray
     let lineMatch
     while ((lineMatch = LINES_RE.exec(pdString))) {
         // In order to support object width, pd vanilla adds something like ", f 10" at the end

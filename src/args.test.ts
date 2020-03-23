@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { parseBoolArg, parseNumberArg, parseArg } from './args'
 
-describe('args', function () {
+describe('args', () => {
     describe('parseBoolArg', () => {
         it('should parse strings correctly', () => {
             assert.strictEqual(parseBoolArg('0'), false)
@@ -24,8 +24,8 @@ describe('args', function () {
         })
     })
 
-    describe('parseNumberArg', function () {
-        it('should parse floats rightly', function () {
+    describe('parseNumberArg', () => {
+        it('should parse floats rightly', () => {
             assert.strictEqual(parseNumberArg('789.9'), 789.9)
             assert.strictEqual(parseNumberArg('0'), 0)
             assert.strictEqual(parseNumberArg('0.'), 0)
@@ -34,39 +34,39 @@ describe('args', function () {
             assert.strictEqual(parseNumberArg('0.558e2'), 55.8)
         })
 
-        it('return NaN if invalid float', function () {
+        it('return NaN if invalid float', () => {
             assert.ok(isNaN(parseNumberArg('bla')))
             assert.ok(isNaN(parseNumberArg(([1] as unknown) as number)))
         })
     })
 
-    describe('parseArg', function () {
-        it('should parse numbers rightly', function () {
+    describe('parseArg', () => {
+        it('should parse numbers rightly', () => {
             assert.equal(parseArg(1), 1)
             assert.equal(parseArg(0.7e-2), 0.007)
             assert.equal(parseArg('1'), 1)
             assert.equal(parseArg('0.7e-2'), 0.007)
         })
 
-        it('should parse strings rightly', function () {
+        it('should parse strings rightly', () => {
             assert.equal(parseArg('bla'), 'bla')
         })
 
-        it('should unescape dollar vars', function () {
+        it('should unescape dollar vars', () => {
             assert.equal(parseArg('\\$15'), '$15')
             assert.equal(parseArg('\\$15-bla-\\$0'), '$15-bla-$0')
         })
 
-        it('should unescape comas and semicolons', function () {
+        it('should unescape comas and semicolons', () => {
             assert.equal(parseArg('\\,bla'), ',bla')
             assert.equal(parseArg('lolo\\;\\,'), 'lolo;,')
         })
 
-        it('should raise error with invalid args', function () {
-            assert.throws(function () {
+        it('should raise error with invalid args', () => {
+            assert.throws(() => {
                 parseArg(([1, 2] as unknown) as PdJson.ObjectArgument)
             })
-            assert.throws(function () {
+            assert.throws(() => {
                 parseArg(null)
             })
         })

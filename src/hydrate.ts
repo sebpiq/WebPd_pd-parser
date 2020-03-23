@@ -1,7 +1,7 @@
 import { parseBoolArg, parseNumberArg, parseArg } from './args'
 import { TOKENS_RE, TokenizedLine, Tokens } from './tokenize'
 
-export enum ControlType {
+enum ControlType {
     floatatom = 'floatatom',
     symbolatom = 'symbolatom',
     bng = 'bng',
@@ -19,15 +19,14 @@ const hydratePatch = (
     id: PdJson.ObjectGlobalId,
     { tokens }: TokenizedLine
 ): PdJson.Patch => {
-    const layout: PdJson.PatchLayout = {
-        x: parseInt(tokens[2], 10),
-        y: parseInt(tokens[3], 10),
-        width: parseInt(tokens[4], 10),
-        height: parseInt(tokens[5], 10),
-    }
     const patch: PdJson.Patch = {
         id,
-        layout,
+        layout: {
+            x: parseInt(tokens[2], 10),
+            y: parseInt(tokens[3], 10),
+            width: parseInt(tokens[4], 10),
+            height: parseInt(tokens[5], 10),
+        },
         args: [tokens[6]],
         nodes: {},
         connections: [],
@@ -103,19 +102,19 @@ const hydrateNodeGeneric = (
         args = tokens.slice(4)
     }
 
+    // If text, we need to re-join all tokens
     if (elementType === 'text') {
         args = [tokens.slice(4).join(' ')]
     }
 
-    const layout: PdJson.ObjectLayout = {
-        x: parseNumberArg(tokens[2]),
-        y: parseNumberArg(tokens[3]),
-    }
     let node: PdJson.GenericNode = {
         id,
-        layout,
         proto,
         args,
+        layout: {
+            x: parseNumberArg(tokens[2]),
+            y: parseNumberArg(tokens[3]),
+        },
     }
 
     // Handling controls' creation arguments
@@ -156,6 +155,11 @@ const hydrateNodeControl = (
     node: PdJson.ControlNode,
     args: Tokens
 ): PdJson.ControlNode => {
+    node = {
+        layout: { ...node.layout },
+        args: [...args],
+        ...node,
+    }
     if (node.proto === 'floatatom' || node.proto === 'symbolatom') {
         // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
         node.layout.width = parseNumberArg(args[0])
@@ -279,9 +283,7 @@ const hydrateNodeControl = (
         node.args = [args[3], args[4], args[12]]
     }
 
-    return {
-        ...node,
-    }
+    return node
 }
 
 export default {

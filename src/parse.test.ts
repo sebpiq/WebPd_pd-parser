@@ -41,7 +41,7 @@ const assertTokenizedLinesEqual = (
     })
 }
 
-describe('parse', function () {
+describe('parse', () => {
     describe('parsePatches', () => {
         it('should extract nested subpatches', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
@@ -107,8 +107,8 @@ describe('parse', function () {
         })
     })
 
-    describe('parse', function () {
-        it('should parse simple patch', function () {
+    describe('parse', () => {
+        it('should parse simple patch', () => {
             const pd = parse(TEST_PATCHES.simple)
             assert.equal(Object.keys(pd.patches).length, 1)
             assert.equal(Object.keys(pd.arrays).length, 0)
@@ -141,7 +141,7 @@ describe('parse', function () {
             })
         })
 
-        it('should parse objects and controls rightly', function () {
+        it('should parse objects and controls rightly', () => {
             const pd = parse(TEST_PATCHES.nodeElems)
             assert.equal(Object.keys(pd.patches).length, 1)
             assert.equal(Object.keys(pd.arrays).length, 0)
@@ -372,7 +372,7 @@ describe('parse', function () {
             ])
         })
 
-        it('should parse array rightly', function () {
+        it('should parse array rightly', () => {
             const pd = parse(TEST_PATCHES.arrays)
             assert.equal(Object.keys(pd.patches).length, 2)
             assert.equal(Object.keys(pd.arrays).length, 1)
@@ -464,7 +464,7 @@ describe('parse', function () {
             )
         })
 
-        it('should parse graph rightly', function () {
+        it('should parse graph rightly', () => {
             const pd = parse(TEST_PATCHES.graphs)
             assert.equal(Object.keys(pd.patches).length, 2)
             assert.equal(Object.keys(pd.arrays).length, 0)
@@ -502,7 +502,7 @@ describe('parse', function () {
             })
         })
 
-        it('should parse subpatches rightly', function () {
+        it('should parse subpatches rightly', () => {
             const pd = parse(TEST_PATCHES.subpatches)
             assert.equal(Object.keys(pd.patches).length, 3)
             assert.equal(Object.keys(pd.arrays).length, 0)
@@ -621,7 +621,7 @@ describe('parse', function () {
             })
         })
 
-        it('should parse object size as saved in pd vanilla', function () {
+        it('should parse object size as saved in pd vanilla', () => {
             const pd = parse(TEST_PATCHES.objectSizePdVanilla)
             assert.equal(Object.keys(pd.patches).length, 1)
             assert.equal(Object.keys(pd.arrays).length, 0)
@@ -631,24 +631,24 @@ describe('parse', function () {
             assert.equal(patch.nodes[1].layout.width, 40)
         })
 
-        it('should fail with an unknown element', function () {
+        it('should fail with an unknown element', () => {
             const patchStr =
                 '#N canvas 778 17 450 300 10;\n' +
                 '#X obj 14 13 loadbang;\n' +
                 '#X weirdElement 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;'
-            assert.throws(function () {
+            assert.throws(() => {
                 parse(patchStr)
             })
         })
 
-        it('should fail with an unknown chunk', function () {
+        it('should fail with an unknown chunk', () => {
             const patchStr =
                 '#N canvas 778 17 450 300 10;\n' +
                 '#X obj 14 13 loadbang;\n' +
                 '#WEIRD dac~ 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;'
-            assert.throws(function () {
+            assert.throws(() => {
                 parse(patchStr)
             })
         })
