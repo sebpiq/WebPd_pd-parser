@@ -16,7 +16,14 @@ import parse, { parsePatches } from './parse'
 import round from 'lodash.round'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 
-const TEST_PATCHES_DIR = path.resolve(__dirname, '..', 'test-patches')
+const TEST_PATCHES_DIR = path.resolve(
+    __dirname,
+    '..',
+    'node_modules',
+    '@webpd',
+    'shared',
+    'test-patches'
+)
 
 const TEST_PATCHES = {
     subpatches: fs
