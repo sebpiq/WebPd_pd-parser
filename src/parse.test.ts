@@ -10,7 +10,7 @@
  */
 
 import assert from 'assert'
-import parse, { parsePatches } from './parse'
+import parse, { parsePatches, nextPatchId, nextArrayId } from './parse'
 import round from 'lodash.round'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 import TEST_PATCHES from '@webpd/shared/test-patches'
@@ -29,6 +29,11 @@ const assertTokenizedLinesEqual = (
 }
 
 describe('parse', () => {
+    beforeEach(() => {
+        nextPatchId.counter = -1
+        nextArrayId.counter = -1
+    })
+
     describe('parsePatches', () => {
         it('should extract nested subpatches', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
@@ -125,6 +130,8 @@ describe('parse', () => {
                         sink: { id: '1', port: 0 },
                     },
                 ],
+                inlets: [],
+                outlets: [],
             })
         })
 
@@ -387,6 +394,8 @@ describe('parse', () => {
                     },
                 },
                 connections: [],
+                inlets: [],
+                outlets: [],
             })
 
             assert.deepEqual(arraySubpatch, {
@@ -403,6 +412,8 @@ describe('parse', () => {
                     '0': { id: '0', proto: 'array', refId: '0', args: [] },
                 },
                 connections: [],
+                inlets: [],
+                outlets: [],
             })
 
             assert.deepEqual(
@@ -472,6 +483,8 @@ describe('parse', () => {
                     },
                 },
                 connections: [],
+                inlets: [],
+                outlets: [],
             })
 
             assert.deepEqual(graphSubpatch, {
@@ -486,6 +499,8 @@ describe('parse', () => {
                 args: ['(subpatch)'],
                 nodes: {},
                 connections: [],
+                inlets: [],
+                outlets: [],
             })
         })
 
@@ -527,6 +542,8 @@ describe('parse', () => {
                     { source: { id: 1, port: 0 }, sink: { id: 2, port: 0 } },
                     { source: { id: 1, port: 0 }, sink: { id: 2, port: 1 } },
                 ],
+                inlets: [],
+                outlets: [],
             })
 
             assert.deepEqual(subpatch1, {
@@ -576,6 +593,8 @@ describe('parse', () => {
                     { source: { id: 0, port: 0 }, sink: { id: 1, port: 0 } },
                     { source: { id: 2, port: 0 }, sink: { id: 3, port: 0 } },
                 ],
+                inlets: ['0'],
+                outlets: ['3'],
             })
 
             assert.deepEqual(subpatch2, {
@@ -605,6 +624,8 @@ describe('parse', () => {
                 connections: [
                     { source: { id: 1, port: 0 }, sink: { id: 0, port: 0 } },
                 ],
+                inlets: [],
+                outlets: ['0'],
             })
         })
 
@@ -616,6 +637,15 @@ describe('parse', () => {
 
             assert.equal(patch.nodes[0].layout.width, 30)
             assert.equal(patch.nodes[1].layout.width, 40)
+        })
+
+        it('should add inlets and outlets in layout order', () => {
+            const pd1 = parse(TEST_PATCHES.portletsOrder1)
+            const pd2 = parse(TEST_PATCHES.portletsOrder2)
+            assert.deepEqual(pd1.patches[1].inlets, ['0', '1'])
+            assert.deepEqual(pd1.patches[1].outlets, ['2', '3'])
+            assert.deepEqual(pd2.patches[3].inlets, ['1', '0'])
+            assert.deepEqual(pd2.patches[3].outlets, ['3', '2'])
         })
 
         it('should fail with an unknown element', () => {

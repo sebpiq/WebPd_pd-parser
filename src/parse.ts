@@ -13,6 +13,12 @@ import hydrate from './hydrate'
 import { isNumber } from './args'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
+export const nextPatchId = (): string => `${++nextPatchId.counter}`
+nextPatchId.counter = -1
+
+export const nextArrayId = (): string => `${++nextArrayId.counter}`
+nextArrayId.counter = -1
+
 const NODES = ['obj', 'floatatom', 'symbolatom', 'msg', 'text']
 
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
@@ -35,6 +41,7 @@ export default (pdString: Pd.PdString): PdJson.Pd => {
             patch,
             patchTokenizedLines
         )
+        patch = computePatchPortlets(patch)
         if (patchTokenizedLines.length) {
             throw new Error(
                 `invalid chunks : ${patchTokenizedLines.map((l) => l.tokens)}`
@@ -69,10 +76,7 @@ export const parsePatches = (
 
         // First line of the patch / subpatch, initializes the patch
         if (_tokensMatch(tokens, '#N', 'canvas') && lineIndex === 0) {
-            currentPatch = hydrate.patch(
-                `${Object.keys(pd.patches).length}`,
-                tokenizedLines.shift()
-            )
+            currentPatch = hydrate.patch(nextPatchId(), tokenizedLines.shift())
             pd.patches[currentPatch.id] = currentPatch
             patchTokenizedLinesMap[currentPatch.id] = []
 
@@ -103,6 +107,39 @@ export const parsePatches = (
     return [pd, tokenizedLines, patchTokenizedLinesMap]
 }
 
+const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
+    const _comparePortletsId = (
+        node1: PdJson.Node,
+        node2: PdJson.Node
+    ): number => parseInt(node1.id) - parseInt(node2.id)
+    const _comparePortletsLayout = (
+        node1: PdJson.Node,
+        node2: PdJson.Node
+    ): number => node1.layout.x - node2.layout.x
+
+    const inletNodes = Object.values(patch.nodes).filter((node) =>
+        ['inlet', 'inlet~'].includes(node.proto)
+    )
+    const inletsSortFunction = inletNodes.every((node) => !!node.layout)
+        ? _comparePortletsLayout
+        : _comparePortletsId
+    inletNodes.sort(inletsSortFunction)
+
+    const outletNodes = Object.values(patch.nodes).filter((node) =>
+        ['outlet', 'outlet~'].includes(node.proto)
+    )
+    const outletsSortFunction = outletNodes.every((node) => !!node.layout)
+        ? _comparePortletsLayout
+        : _comparePortletsId
+    outletNodes.sort(outletsSortFunction)
+
+    return {
+        ...patch,
+        inlets: inletNodes.map((node) => node.id),
+        outlets: outletNodes.map((node) => node.id),
+    }
+}
+
 const parseArrays = (
     pd: PdJson.Pd,
     tokenizedLines: Array<TokenizedLine>
@@ -123,10 +160,7 @@ const parseArrays = (
 
         // start of an array definition
         if (_tokensMatch(tokens, '#X', 'array')) {
-            currentArray = hydrate.array(
-                `${Object.keys(pd.arrays).length}`,
-                tokenizedLines.shift()
-            )
+            currentArray = hydrate.array(nextArrayId(), tokenizedLines.shift())
             pd.arrays[currentArray.id] = currentArray
             // Creates a synthetic node that our parser will hydrate at a later stage
             remainingTokenizedLines.push({

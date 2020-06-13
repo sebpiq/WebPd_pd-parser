@@ -41,6 +41,8 @@ const hydratePatch = (
         args: [tokens[6]],
         nodes: {},
         connections: [],
+        inlets: [],
+        outlets: [],
     }
     if (typeof tokens[7] !== 'undefined') {
         patch.layout.openOnLoad = parseBoolArg(tokens[7])
