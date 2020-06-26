@@ -155,11 +155,11 @@ const hydrateNodeGeneric = (
 const hydrateConnection = ({ tokens }: TokenizedLine): PdJson.Connection => ({
     source: {
         id: tokens[2],
-        port: parseInt(tokens[3], 10),
+        portlet: parseInt(tokens[3], 10),
     },
     sink: {
         id: tokens[4],
-        port: parseInt(tokens[5], 10),
+        portlet: parseInt(tokens[5], 10),
     },
 })
 

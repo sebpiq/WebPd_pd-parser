@@ -126,8 +126,8 @@ describe('parse', () => {
                 },
                 connections: [
                     {
-                        source: { id: '0', port: 0 },
-                        sink: { id: '1', port: 0 },
+                        source: { id: '0', portlet: 0 },
+                        sink: { id: '1', portlet: 0 },
                     },
                 ],
                 inlets: [],
@@ -360,9 +360,9 @@ describe('parse', () => {
             })
 
             assert.deepEqual(patch.connections, [
-                { source: { id: 1, port: 0 }, sink: { id: 0, port: 0 } },
-                { source: { id: 2, port: 0 }, sink: { id: 0, port: 0 } },
-                { source: { id: 6, port: 0 }, sink: { id: 4, port: 0 } },
+                { source: { id: 1, portlet: 0 }, sink: { id: 0, portlet: 0 } },
+                { source: { id: 2, portlet: 0 }, sink: { id: 0, portlet: 0 } },
+                { source: { id: 6, portlet: 0 }, sink: { id: 4, portlet: 0 } },
             ])
         })
 
@@ -538,9 +538,18 @@ describe('parse', () => {
                     },
                 },
                 connections: [
-                    { source: { id: 0, port: 0 }, sink: { id: 1, port: 0 } },
-                    { source: { id: 1, port: 0 }, sink: { id: 2, port: 0 } },
-                    { source: { id: 1, port: 0 }, sink: { id: 2, port: 1 } },
+                    {
+                        source: { id: 0, portlet: 0 },
+                        sink: { id: 1, portlet: 0 },
+                    },
+                    {
+                        source: { id: 1, portlet: 0 },
+                        sink: { id: 2, portlet: 0 },
+                    },
+                    {
+                        source: { id: 1, portlet: 0 },
+                        sink: { id: 2, portlet: 1 },
+                    },
                 ],
                 inlets: [],
                 outlets: [],
@@ -590,8 +599,14 @@ describe('parse', () => {
                     },
                 },
                 connections: [
-                    { source: { id: 0, port: 0 }, sink: { id: 1, port: 0 } },
-                    { source: { id: 2, port: 0 }, sink: { id: 3, port: 0 } },
+                    {
+                        source: { id: 0, portlet: 0 },
+                        sink: { id: 1, portlet: 0 },
+                    },
+                    {
+                        source: { id: 2, portlet: 0 },
+                        sink: { id: 3, portlet: 0 },
+                    },
                 ],
                 inlets: ['0'],
                 outlets: ['3'],
@@ -622,7 +637,10 @@ describe('parse', () => {
                     },
                 },
                 connections: [
-                    { source: { id: 1, port: 0 }, sink: { id: 0, port: 0 } },
+                    {
+                        source: { id: 1, portlet: 0 },
+                        sink: { id: 0, portlet: 0 },
+                    },
                 ],
                 inlets: [],
                 outlets: ['0'],

@@ -4,8 +4,9 @@
   "description": "Parses Pd file format to JavaScript / TypeScript following the PdJson specification",
   "type": "module",
   "scripts": {
-    "test-bail": "npm explore @webpd/shared -- npm run test-bail $(pwd)/src/*test.ts",
-    "test-watch": "npm explore @webpd/shared -- npm run test-watch $(pwd)/src/*test.ts",
+    "test-bail": "npm explore @webpd/shared -- npm run test-bail $(pwd)",
+    "test-watch": "npm explore @webpd/shared -- npm run test-watch $(pwd)",
+    "test-debug": "npm explore @webpd/shared -- npm run test-debug $(pwd)",
     "prettier": "npm explore @webpd/shared -- npm run prettier $(pwd)/src",
     "eslint": "npm explore @webpd/shared -- npm run eslint $(pwd)/src",
     "all": "npm run test-bail && npm run prettier && npm run eslint"

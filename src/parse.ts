@@ -111,7 +111,7 @@ const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
     const _comparePortletsId = (
         node1: PdJson.Node,
         node2: PdJson.Node
-    ): number => parseInt(node1.id) - parseInt(node2.id)
+    ): number => parseFloat(node1.id) - parseFloat(node2.id)
     const _comparePortletsLayout = (
         node1: PdJson.Node,
         node2: PdJson.Node
