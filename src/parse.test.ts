@@ -113,21 +113,21 @@ describe('parse', () => {
                 nodes: {
                     '0': {
                         id: '0',
-                        proto: 'loadbang',
+                        type: 'loadbang',
                         args: [],
                         layout: { x: 14, y: 13 },
                     },
                     '1': {
                         id: '1',
-                        proto: 'print',
+                        type: 'print',
                         args: ['bla'],
                         layout: { x: 14, y: 34 },
                     },
                 },
                 connections: [
                     {
-                        source: { id: '0', portlet: 0 },
-                        sink: { id: '1', portlet: 0 },
+                        source: { nodeId: '0', portletId: 0 },
+                        sink: { nodeId: '1', portletId: 0 },
                     },
                 ],
                 inlets: [],
@@ -143,7 +143,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[0], {
                 id: '0',
-                proto: 'floatatom',
+                type: 'floatatom',
                 args: [0, 0, '-', '-'],
                 layout: {
                     x: 73,
@@ -156,14 +156,14 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[1], {
                 id: 1,
-                proto: 'msg',
+                type: 'msg',
                 args: [89],
                 layout: { x: 73, y: 43 },
             })
 
             assert.deepEqual(patch.nodes[2], {
                 id: 2,
-                proto: 'bng',
+                type: 'bng',
                 args: [0, 'empty', 'empty'],
                 layout: {
                     size: 15,
@@ -184,7 +184,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[3], {
                 id: 3,
-                proto: 'tgl',
+                type: 'tgl',
                 args: [1, 'tglSendBla', 'tglRcvBla', 10, 10],
                 layout: {
                     x: 144,
@@ -203,7 +203,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[4], {
                 id: 4,
-                proto: 'nbx',
+                type: 'nbx',
                 args: [-1e37, 1e37, 1, 'empty', 'empty', 56789],
                 layout: {
                     x: 180,
@@ -225,7 +225,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[5], {
                 id: 5,
-                proto: 'hsl',
+                type: 'hsl',
                 args: [0, 1270, 1, 'empty', 'empty', 580],
                 layout: {
                     x: 242,
@@ -247,7 +247,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[6], {
                 id: 6,
-                proto: 'vradio',
+                type: 'vradio',
                 args: [1, 0, 8, 'empty', 'empty', 0],
                 layout: {
                     x: 249,
@@ -266,7 +266,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[7], {
                 id: 7,
-                proto: 'vu',
+                type: 'vu',
                 args: ['empty', 0],
                 layout: {
                     x: 89,
@@ -286,7 +286,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[8], {
                 id: 8,
-                proto: 'cnv',
+                type: 'cnv',
                 args: ['empty', 'empty', 0],
                 layout: {
                     x: 317,
@@ -306,14 +306,14 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[9], {
                 id: 9,
-                proto: 'symbolatom',
+                type: 'symbolatom',
                 args: [0, 0, '-', '-'],
                 layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '-' },
             })
 
             assert.deepEqual(patch.nodes[10], {
                 id: 10,
-                proto: 'vsl',
+                type: 'vsl',
                 args: [0, 12700, 1, 'empty', 'empty', 9500],
                 layout: {
                     x: 458,
@@ -335,7 +335,7 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[11], {
                 id: 11,
-                proto: 'hradio',
+                type: 'hradio',
                 args: [1, 0, 8, 'empty', 'empty', 0],
                 layout: {
                     x: 69,
@@ -354,15 +354,24 @@ describe('parse', () => {
 
             assert.deepEqual(patch.nodes[12], {
                 id: 12,
-                proto: 'text',
+                type: 'text',
                 args: ['< this comment should be aligned to the hradio'],
                 layout: { x: 205, y: 308 },
             })
 
             assert.deepEqual(patch.connections, [
-                { source: { id: 1, portlet: 0 }, sink: { id: 0, portlet: 0 } },
-                { source: { id: 2, portlet: 0 }, sink: { id: 0, portlet: 0 } },
-                { source: { id: 6, portlet: 0 }, sink: { id: 4, portlet: 0 } },
+                {
+                    source: { nodeId: 1, portletId: 0 },
+                    sink: { nodeId: 0, portletId: 0 },
+                },
+                {
+                    source: { nodeId: 2, portletId: 0 },
+                    sink: { nodeId: 0, portletId: 0 },
+                },
+                {
+                    source: { nodeId: 6, portletId: 0 },
+                    sink: { nodeId: 4, portletId: 0 },
+                },
             ])
         })
 
@@ -381,14 +390,14 @@ describe('parse', () => {
                 nodes: {
                     '0': {
                         id: '0',
-                        proto: 'graph',
+                        type: 'graph',
                         args: [],
                         layout: { x: 157, y: 26 },
                         refId: '1',
                     },
                     '1': {
                         id: '1',
-                        proto: 'osc~',
+                        type: 'osc~',
                         args: [440],
                         layout: { x: 19, y: 370 },
                     },
@@ -409,7 +418,7 @@ describe('parse', () => {
                 },
                 args: ['(subpatch)'],
                 nodes: {
-                    '0': { id: '0', proto: 'array', refId: '0', args: [] },
+                    '0': { id: '0', type: 'array', refId: '0', args: [] },
                 },
                 connections: [],
                 inlets: [],
@@ -477,7 +486,7 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         refId: '1',
-                        proto: 'graph',
+                        type: 'graph',
                         args: [],
                         layout: { x: 100, y: 20 },
                     },
@@ -519,36 +528,36 @@ describe('parse', () => {
                 nodes: {
                     '0': {
                         id: '0',
-                        proto: 'osc~',
+                        type: 'osc~',
                         args: [],
                         layout: { x: 78, y: 81 },
                     },
                     '1': {
                         id: '1',
-                        proto: 'pd',
+                        type: 'pd',
                         args: ['subPatch'],
                         layout: { x: 79, y: 117 },
                         refId: '1',
                     },
                     '2': {
                         id: '2',
-                        proto: 'dac~',
+                        type: 'dac~',
                         args: [],
                         layout: { x: 80, y: 175 },
                     },
                 },
                 connections: [
                     {
-                        source: { id: 0, portlet: 0 },
-                        sink: { id: 1, portlet: 0 },
+                        source: { nodeId: 0, portletId: 0 },
+                        sink: { nodeId: 1, portletId: 0 },
                     },
                     {
-                        source: { id: 1, portlet: 0 },
-                        sink: { id: 2, portlet: 0 },
+                        source: { nodeId: 1, portletId: 0 },
+                        sink: { nodeId: 2, portletId: 0 },
                     },
                     {
-                        source: { id: 1, portlet: 0 },
-                        sink: { id: 2, portlet: 1 },
+                        source: { nodeId: 1, portletId: 0 },
+                        sink: { nodeId: 2, portletId: 1 },
                     },
                 ],
                 inlets: [],
@@ -568,31 +577,31 @@ describe('parse', () => {
                 nodes: {
                     '0': {
                         id: '0',
-                        proto: 'inlet~',
+                        type: 'inlet~',
                         args: [],
                         layout: { x: 46, y: 39 },
                     },
                     '1': {
                         id: '1',
-                        proto: 'delwrite~',
+                        type: 'delwrite~',
                         args: ['myDel'],
                         layout: { x: 47, y: 83 },
                     },
                     '2': {
                         id: '2',
-                        proto: 'delread~',
+                        type: 'delread~',
                         args: ['myDel'],
                         layout: { x: 47, y: 126 },
                     },
                     '3': {
                         id: '3',
-                        proto: 'outlet~',
+                        type: 'outlet~',
                         args: [],
                         layout: { x: 48, y: 165 },
                     },
                     '4': {
                         id: '4',
-                        proto: 'pd',
+                        type: 'pd',
                         args: ['subSubPatch'],
                         layout: { x: 183, y: 83 },
                         refId: '2',
@@ -600,12 +609,12 @@ describe('parse', () => {
                 },
                 connections: [
                     {
-                        source: { id: 0, portlet: 0 },
-                        sink: { id: 1, portlet: 0 },
+                        source: { nodeId: 0, portletId: 0 },
+                        sink: { nodeId: 1, portletId: 0 },
                     },
                     {
-                        source: { id: 2, portlet: 0 },
-                        sink: { id: 3, portlet: 0 },
+                        source: { nodeId: 2, portletId: 0 },
+                        sink: { nodeId: 3, portletId: 0 },
                     },
                 ],
                 inlets: ['0'],
@@ -625,21 +634,21 @@ describe('parse', () => {
                 nodes: {
                     '0': {
                         id: '0',
-                        proto: 'outlet~',
+                        type: 'outlet~',
                         args: [],
                         layout: { x: 67, y: 67 },
                     },
                     '1': {
                         id: '1',
-                        proto: 'phasor~',
+                        type: 'phasor~',
                         args: [-440],
                         layout: { x: 66, y: 32 },
                     },
                 },
                 connections: [
                     {
-                        source: { id: 1, portlet: 0 },
-                        sink: { id: 0, portlet: 0 },
+                        source: { nodeId: 1, portletId: 0 },
+                        sink: { nodeId: 0, portletId: 0 },
                     },
                 ],
                 inlets: [],

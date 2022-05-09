@@ -21,7 +21,7 @@ export const isNumber = (obj: number | string): obj is number =>
     _isNumber(obj) && !isNaN(obj)
 
 // Parses a float from a .pd file. Returns the parsed float or NaN.
-export const parseNumberArg = (val: PdJson.ObjectArgument): number => {
+export const parseNumberArg = (val: PdSharedTypes.NodeArgument): number => {
     if (isNumber(val)) {
         return val
     } else if (isString(val)) {
@@ -34,7 +34,9 @@ export const parseNumberArg = (val: PdJson.ObjectArgument): number => {
 // Parses argument to a string or a number.
 // Needs to handle the case when the argument is already a number as in the process of gathering
 // arguments we sometimes insert a number.
-export const parseArg = (arg: PdJson.ObjectArgument): PdJson.ObjectArgument => {
+export const parseArg = (
+    arg: PdSharedTypes.NodeArgument
+): PdSharedTypes.NodeArgument => {
     const parsed = parseNumberArg(arg)
     if (isNumber(parsed)) {
         return parsed
@@ -54,7 +56,7 @@ export const parseArg = (arg: PdJson.ObjectArgument): PdJson.ObjectArgument => {
 }
 
 // Parses a '0' or '1' from a .pd file. Returns the equivalent boolean.
-export const parseBoolArg = (val: PdJson.ObjectArgument): boolean => {
+export const parseBoolArg = (val: PdSharedTypes.NodeArgument): boolean => {
     if (isNumber(val)) {
         return !!val
     } else if (isString(val)) {

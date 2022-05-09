@@ -76,7 +76,7 @@ const hydrateNodePatch = (
 
     return {
         id,
-        proto: canvasType,
+        type: canvasType,
         refId: tokens[1],
         args,
         layout: {
@@ -92,7 +92,7 @@ const hydrateNodeArray = (
 ): PdJson.GenericNode => ({
     id,
     args: [],
-    proto: 'array',
+    type: 'array',
     refId: tokens[1],
 })
 
@@ -101,17 +101,17 @@ const hydrateNodeGeneric = (
     { tokens, lineAfterComma }: TokenizedLine
 ): PdJson.GenericNode => {
     const elementType = tokens[1]
-    let proto // the object name
+    let type // the object name
     let args: Tokens // the construction args for the object
 
     // 2 categories here :
     //  - elems whose name is `elementType`
     //  - elems whose name is `token[4]`
     if (elementType === 'obj') {
-        proto = tokens[4]
+        type = tokens[4]
         args = tokens.slice(5)
     } else {
-        proto = elementType
+        type = elementType
         args = tokens.slice(4)
     }
 
@@ -122,7 +122,7 @@ const hydrateNodeGeneric = (
 
     let node: PdJson.GenericNode = {
         id,
-        proto,
+        type,
         args,
         layout: {
             x: parseNumberArg(tokens[2]),
@@ -131,7 +131,7 @@ const hydrateNodeGeneric = (
     }
 
     // Handling controls' creation arguments
-    if (Object.keys(ControlType).includes(proto)) {
+    if (Object.keys(ControlType).includes(type)) {
         node = hydrateNodeControl(node as PdJson.ControlNode, args)
     }
 
@@ -154,12 +154,12 @@ const hydrateNodeGeneric = (
 
 const hydrateConnection = ({ tokens }: TokenizedLine): PdJson.Connection => ({
     source: {
-        id: tokens[2],
-        portlet: parseInt(tokens[3], 10),
+        nodeId: tokens[2],
+        portletId: parseInt(tokens[3], 10),
     },
     sink: {
-        id: tokens[4],
-        portlet: parseInt(tokens[5], 10),
+        nodeId: tokens[4],
+        portletId: parseInt(tokens[5], 10),
     },
 })
 
@@ -173,14 +173,14 @@ const hydrateNodeControl = (
         args: [...args],
         ...node,
     }
-    if (node.proto === 'floatatom' || node.proto === 'symbolatom') {
+    if (node.type === 'floatatom' || node.type === 'symbolatom') {
         // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
         node.layout.width = parseNumberArg(args[0])
         node.layout.labelPos = parseNumberArg(args[3])
         node.layout.label = args[4]
         // <lower_limit> <upper_limit> <receive> <send>
         node.args = [args[1], args[2], args[5], args[6]]
-    } else if (node.proto === 'bng') {
+    } else if (node.type === 'bng') {
         // <size> <hold> <interrupt> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color>
         node.layout.size = parseNumberArg(args[0])
         node.layout.hold = parseNumberArg(args[1])
@@ -195,7 +195,7 @@ const hydrateNodeControl = (
         node.layout.labelColor = args[13]
         // <init> <send> <receive>
         node.args = [args[3], args[4], args[5]]
-    } else if (node.proto === 'tgl') {
+    } else if (node.type === 'tgl') {
         // <size> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <init_value> <default_value>
         node.layout.size = parseNumberArg(args[0])
         node.layout.label = args[4]
@@ -208,7 +208,7 @@ const hydrateNodeControl = (
         node.layout.labelColor = args[11]
         // <init> <send> <receive> <init_value> <default_value>
         node.args = [args[1], args[2], args[3], args[12], args[13]]
-    } else if (node.proto === 'nbx') {
+    } else if (node.type === 'nbx') {
         // !!! doc is inexact here, logHeight is not at the specified position, and initial value of the nbx was missing.
         // <size> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <log_height>
         node.layout.size = parseNumberArg(args[0])
@@ -225,7 +225,7 @@ const hydrateNodeControl = (
         node.layout.logHeight = args[17]
         // <min> <max> <init> <send> <receive>
         node.args = [args[2], args[3], args[5], args[6], args[7], args[16]]
-    } else if (node.proto === 'vsl' || node.proto === 'hsl') {
+    } else if (node.type === 'vsl' || node.type === 'hsl') {
         // <width> <height> <bottom> <top> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value> <steady_on_click>
         node.layout.width = parseNumberArg(args[0])
         node.layout.height = parseNumberArg(args[1])
@@ -251,7 +251,7 @@ const hydrateNodeControl = (
                     parseNumberArg(args[16])) /
                     12700,
         ]
-    } else if (node.proto === 'vradio' || node.proto === 'hradio') {
+    } else if (node.type === 'vradio' || node.type === 'hradio') {
         // <size> <new_old> <init> <number> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value>
         node.layout.size = parseNumberArg(args[0])
         node.layout.label = args[6]
@@ -265,7 +265,7 @@ const hydrateNodeControl = (
 
         // <new_old> <init> <number> <send> <receive> <default_value>
         node.args = [args[1], args[2], args[3], args[4], args[5], args[14]]
-    } else if (node.proto === 'vu') {
+    } else if (node.type === 'vu') {
         // <width> <height> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <label_color> <scale> <?>
         node.layout.width = parseNumberArg(args[0])
         node.layout.height = parseNumberArg(args[1])
@@ -280,7 +280,7 @@ const hydrateNodeControl = (
 
         // <receive> <?>
         node.args = [args[2], args[11]]
-    } else if (node.proto === 'cnv') {
+    } else if (node.type === 'cnv') {
         // <size> <width> <height> <send> <receive> <label> <x_off> <y_off> <font> <font_size> <bg_color> <label_color> <?>
         node.layout.size = parseNumberArg(args[0])
         node.layout.width = parseNumberArg(args[1])

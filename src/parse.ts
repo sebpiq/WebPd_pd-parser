@@ -118,7 +118,7 @@ const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
     ): number => node1.layout.x - node2.layout.x
 
     const inletNodes = Object.values(patch.nodes).filter((node) =>
-        ['inlet', 'inlet~'].includes(node.proto)
+        ['inlet', 'inlet~'].includes(node.type)
     )
     const inletsSortFunction = inletNodes.every((node) => !!node.layout)
         ? _comparePortletsLayout
@@ -126,7 +126,7 @@ const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
     inletNodes.sort(inletsSortFunction)
 
     const outletNodes = Object.values(patch.nodes).filter((node) =>
-        ['outlet', 'outlet~'].includes(node.proto)
+        ['outlet', 'outlet~'].includes(node.type)
     )
     const outletsSortFunction = outletNodes.every((node) => !!node.layout)
         ? _comparePortletsLayout
