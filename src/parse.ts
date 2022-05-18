@@ -10,7 +10,6 @@
  */
 
 import hydrate from './hydrate'
-import { isNumber } from './args'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
 export const nextPatchId = (): string => `${++nextPatchId.counter}`
@@ -179,7 +178,7 @@ const parseArrays = (
             const indexOffset = parseFloat(tokens[1])
             tokens.slice(2).forEach((rawVal, i) => {
                 const val = parseFloat(rawVal)
-                if (isNumber(val)) {
+                if (Number.isFinite(val)) {
                     currentArray.data[indexOffset + i] = val
                 }
             })
@@ -206,6 +205,8 @@ const parseNodesAndConnections = (
     tokenizedLines = [...tokenizedLines]
     const remainingTokenizedLines: Array<TokenizedLine> = []
 
+    // In Pd files it seems like node ids are assigned in order in which nodes are declared.
+    // Then connection declarations use these same ids to identify nodes.
     let idCounter = -1
     const nextId = (): string => `${++idCounter}`
 

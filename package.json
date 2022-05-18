@@ -2,7 +2,6 @@
   "name": "@webpd/pd-parser",
   "version": "0.1.0",
   "description": "Parses Pd file format to JavaScript / TypeScript following the PdJson specification",
-  "type": "module",
   "scripts": {
     "test-bail": "npm explore @webpd/shared -- npm run test-bail $(pwd)",
     "test-watch": "npm explore @webpd/shared -- npm run test-watch $(pwd)",
@@ -22,7 +21,6 @@
   },
   "homepage": "https://github.com/sebpiq/WebPd_pd-parser#readme",
   "devDependencies": {
-    "@types/lodash.isnumber": "^3.0.6",
     "@types/lodash.isstring": "^4.0.6",
     "@types/lodash.round": "^4.0.6",
     "@types/mocha": "^7.0.2",
@@ -31,7 +29,6 @@
     "lodash.round": "^4.0.4"
   },
   "dependencies": {
-    "lodash.isnumber": "^3.0.3",
     "lodash.isstring": "^4.0.1"
   }
 }
