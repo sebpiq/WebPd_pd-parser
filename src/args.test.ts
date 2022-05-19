@@ -9,14 +9,12 @@
  *
  */
 
-import Type from '@webpd/shared/src/Type'
 import assert from 'assert'
 import {
     parseBoolArg,
     parseNumberArg,
     parseArg,
     parseStringArg,
-    parseTypeArg,
     ValueError,
 } from './args'
 
@@ -78,29 +76,6 @@ describe('args', () => {
         })
     })
 
-    describe('parseTypeArg', () => {
-        it('should parse correctly abbreviated types', () => {
-            assert.strictEqual(parseTypeArg('b').typeString, 'bang')
-            assert.strictEqual(parseTypeArg('f').typeString, 'float')
-            assert.strictEqual(parseTypeArg('s').typeString, 'symbol')
-            assert.strictEqual(parseTypeArg('a').typeString, 'anything')
-            assert.strictEqual(parseTypeArg('l').typeString, 'list')
-        })
-
-        it('should parse correctly non-abbreviated types', () => {
-            assert.strictEqual(parseTypeArg('bang').typeString, 'bang')
-            assert.strictEqual(parseTypeArg('float').typeString, 'float')
-            assert.strictEqual(parseTypeArg('symbol').typeString, 'symbol')
-            assert.strictEqual(parseTypeArg('anything').typeString, 'anything')
-            assert.strictEqual(parseTypeArg('list').typeString, 'list')
-        })
-
-        it('should throw an error if invalid input', () => {
-            assert.throws(() => parseTypeArg('BAAAaaaaaang!'), ValueError)
-            assert.throws(() => parseTypeArg(null), ValueError)
-        })
-    })
-
     describe('parseArg', () => {
         it('should parse numbers rightly', () => {
             assert.equal(parseArg(1), 1)
@@ -112,14 +87,6 @@ describe('args', () => {
         it('should parse strings rightly', () => {
             assert.equal(parseArg('bla'), 'bla')
             assert.equal(parseArg('\\$15'), '$15')
-        })
-
-        it('should parse types rightly', () => {
-            assert.strictEqual((parseArg('f') as Type).typeString, 'float')
-            assert.strictEqual(
-                (parseArg('symbol') as Type).typeString,
-                'symbol'
-            )
         })
 
         it('should raise error with invalid args', () => {

@@ -9,7 +9,7 @@
  *
  */
 
-import hydrate from './hydrate'
+import hydrate, { NodeHydrator } from './hydrate'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
 export const nextPatchId = (): string => `${++nextPatchId.counter}`
@@ -213,18 +213,15 @@ const parseNodesAndConnections = (
     while (tokenizedLines.length) {
         const { tokens } = tokenizedLines[0]
 
-        let nodeHydrator: (
-            id: PdJson.ObjectLocalId,
-            tokenizedLine: TokenizedLine
-        ) => PdJson.GenericNode | null
+        let nodeHydrator: NodeHydrator | null
         if (_tokensMatch(tokens, 'PATCH')) {
-            nodeHydrator = hydrate.nodePatch
+            nodeHydrator = hydrate.node.patch
         } else if (_tokensMatch(tokens, 'ARRAY')) {
-            nodeHydrator = hydrate.nodeArray
+            nodeHydrator = hydrate.node.array
         } else if (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
-            nodeHydrator = hydrate.nodeGeneric
+            nodeHydrator = hydrate.node.generic
         }
 
         if (nodeHydrator) {

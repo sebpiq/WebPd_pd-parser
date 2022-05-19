@@ -12,6 +12,11 @@
 import { parseBoolArg, parseNumberArg, parseArg } from './args'
 import { TOKENS_RE, TokenizedLine, Tokens } from './tokenize'
 
+export type NodeHydrator = (
+    id: PdJson.ObjectLocalId,
+    tokenizedLine: TokenizedLine
+) => PdJson.GenericNode
+
 enum ControlType {
     floatatom = 'floatatom',
     symbolatom = 'symbolatom',
@@ -63,7 +68,7 @@ const hydrateArray = (
     }
 }
 
-const hydrateNodePatch = (
+const hydrateNodePatch: NodeHydrator = (
     id: PdJson.ObjectLocalId,
     { tokens }: TokenizedLine
 ): PdJson.GenericNode => {
@@ -86,7 +91,7 @@ const hydrateNodePatch = (
     }
 }
 
-const hydrateNodeArray = (
+const hydrateNodeArray: NodeHydrator = (
     id: PdJson.ObjectLocalId,
     { tokens }: TokenizedLine
 ): PdJson.GenericNode => ({
@@ -96,7 +101,7 @@ const hydrateNodeArray = (
     refId: tokens[1],
 })
 
-const hydrateNodeGeneric = (
+const hydrateNodeGeneric: NodeHydrator = (
     id: PdJson.ObjectLocalId,
     { tokens, lineAfterComma }: TokenizedLine
 ): PdJson.GenericNode => {
@@ -147,7 +152,6 @@ const hydrateNodeGeneric = (
         }
     }
 
-    // Add the object to the graph
     node.args = node.args.map(parseArg)
     return node
 }
@@ -302,8 +306,10 @@ const hydrateNodeControl = (
 export default {
     patch: hydratePatch,
     array: hydrateArray,
-    nodeArray: hydrateNodeArray,
-    nodePatch: hydrateNodePatch,
-    nodeGeneric: hydrateNodeGeneric,
+    node: {
+        array: hydrateNodeArray,
+        patch: hydrateNodePatch,
+        generic: hydrateNodeGeneric,
+    },
     connection: hydrateConnection,
 }

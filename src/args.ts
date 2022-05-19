@@ -10,7 +10,6 @@
  */
 
 import _isString from 'lodash.isstring'
-import Type from '@webpd/shared/src/Type'
 
 // Regular expressions to detect escaped special chars.
 const ESCAPED_DOLLAR_VAR_RE_GLOB = /\\(\$\d+)/g
@@ -26,15 +25,6 @@ export const parseArg = (
     // Try to parse arg as a number
     try {
         return parseNumberArg(rawArg)
-    } catch (err) {
-        if (!(err instanceof ValueError)) {
-            throw err
-        }
-    }
-
-    // Try to parse arg as a Type
-    try {
-        return parseTypeArg(rawArg)
     } catch (err) {
         if (!(err instanceof ValueError)) {
             throw err
@@ -80,31 +70,6 @@ export const parseBoolArg = (val: PdSharedTypes.NodeArgument): boolean => {
         return !!num
     } else {
         throw new ValueError(`Not a valid bool arg ${val}`)
-    }
-}
-
-// Parses a type from a .pd file object definition. Returns the parsed Type or throws ValueError.
-export const parseTypeArg = (val: PdSharedTypes.NodeArgument): Type => {
-    if (val === 'b') {
-        return new Type('bang')
-    } else if (val === 'f') {
-        return new Type('float')
-    } else if (val === 's') {
-        return new Type('symbol')
-    } else if (val === 'a') {
-        return new Type('anything')
-    } else if (val === 'l') {
-        return new Type('list')
-    } else if (
-        val === 'bang' ||
-        val === 'float' ||
-        val === 'symbol' ||
-        val === 'anything' ||
-        val === 'list'
-    ) {
-        return new Type(val)
-    } else {
-        throw new ValueError(`Not a valid type arg ${val}`)
     }
 }
 
