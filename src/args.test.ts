@@ -91,7 +91,7 @@ describe('args', () => {
 
         it('should raise error with invalid args', () => {
             assert.throws(() => {
-                parseArg(([1, 2] as unknown) as PdSharedTypes.NodeArgument)
+                parseArg(([1, 2] as unknown) as PdJson.ObjectArg)
             })
             assert.throws(() => {
                 parseArg(null)

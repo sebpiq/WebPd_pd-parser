@@ -31,7 +31,7 @@ enum ControlType {
     cnv = 'cnv',
 }
 
-const hydratePatch = (
+export const hydratePatch = (
     id: PdJson.ObjectGlobalId,
     { tokens }: TokenizedLine
 ): PdJson.Patch => {
@@ -55,7 +55,7 @@ const hydratePatch = (
     return patch
 }
 
-const hydrateArray = (
+export const hydrateArray = (
     id: PdJson.ObjectGlobalId,
     { tokens }: TokenizedLine
 ): PdJson.PdArray => {
@@ -68,7 +68,7 @@ const hydrateArray = (
     }
 }
 
-const hydrateNodePatch: NodeHydrator = (
+export const hydrateNodePatch: NodeHydrator = (
     id: PdJson.ObjectLocalId,
     { tokens }: TokenizedLine
 ): PdJson.GenericNode => {
@@ -91,7 +91,7 @@ const hydrateNodePatch: NodeHydrator = (
     }
 }
 
-const hydrateNodeArray: NodeHydrator = (
+export const hydrateNodeArray: NodeHydrator = (
     id: PdJson.ObjectLocalId,
     { tokens }: TokenizedLine
 ): PdJson.GenericNode => ({
@@ -101,7 +101,7 @@ const hydrateNodeArray: NodeHydrator = (
     refId: tokens[1],
 })
 
-const hydrateNodeGeneric: NodeHydrator = (
+export const hydrateNodeGeneric: NodeHydrator = (
     id: PdJson.ObjectLocalId,
     { tokens, lineAfterComma }: TokenizedLine
 ): PdJson.GenericNode => {
@@ -156,7 +156,7 @@ const hydrateNodeGeneric: NodeHydrator = (
     return node
 }
 
-const hydrateConnection = ({ tokens }: TokenizedLine): PdJson.Connection => ({
+export const hydrateConnection = ({ tokens }: TokenizedLine): PdJson.Connection => ({
     source: {
         nodeId: tokens[2],
         portletId: parseInt(tokens[3], 10),
@@ -301,15 +301,4 @@ const hydrateNodeControl = (
     }
 
     return node
-}
-
-export default {
-    patch: hydratePatch,
-    array: hydrateArray,
-    node: {
-        array: hydrateNodeArray,
-        patch: hydrateNodePatch,
-        generic: hydrateNodeGeneric,
-    },
-    connection: hydrateConnection,
 }

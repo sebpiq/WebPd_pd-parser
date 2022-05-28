@@ -20,8 +20,8 @@ const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\;/g
 // Needs to handle the case when the argument is already a number as in the process of gathering
 // arguments we sometimes insert a number.
 export const parseArg = (
-    rawArg: PdSharedTypes.NodeArgument
-): PdSharedTypes.NodeArgument => {
+    rawArg: PdJson.ObjectArg
+): PdJson.ObjectArg => {
     // Try to parse arg as a number
     try {
         return parseNumberArg(rawArg)
@@ -44,7 +44,7 @@ export const parseArg = (
 }
 
 // Parses a float from a .pd file. Returns the parsed float or throws ValueError.
-export const parseNumberArg = (val: PdSharedTypes.NodeArgument): number => {
+export const parseNumberArg = (val: PdJson.ObjectArg): number => {
     if (isNumber(val)) {
         return val
     } else if (isString(val)) {
@@ -59,7 +59,7 @@ export const parseNumberArg = (val: PdSharedTypes.NodeArgument): number => {
 }
 
 // Parses a '0' or '1' from a .pd file. Returns the equivalent boolean.
-export const parseBoolArg = (val: PdSharedTypes.NodeArgument): boolean => {
+export const parseBoolArg = (val: PdJson.ObjectArg): boolean => {
     if (isNumber(val)) {
         return !!val
     } else if (isString(val)) {
@@ -74,7 +74,7 @@ export const parseBoolArg = (val: PdSharedTypes.NodeArgument): boolean => {
 }
 
 // Apply some operations to a string arg
-export const parseStringArg = (val: PdSharedTypes.NodeArgument): string => {
+export const parseStringArg = (val: PdJson.ObjectArg): string => {
     if (!isString(val)) {
         throw new ValueError(`Not a valid string arg ${val}`)
     }
