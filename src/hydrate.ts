@@ -156,7 +156,9 @@ export const hydrateNodeGeneric: NodeHydrator = (
     return node
 }
 
-export const hydrateConnection = ({ tokens }: TokenizedLine): PdJson.Connection => ({
+export const hydrateConnection = ({
+    tokens,
+}: TokenizedLine): PdJson.Connection => ({
     source: {
         nodeId: tokens[2],
         portletId: parseInt(tokens[3], 10),

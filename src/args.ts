@@ -19,9 +19,7 @@ const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\;/g
 // Parses argument to a string or a number.
 // Needs to handle the case when the argument is already a number as in the process of gathering
 // arguments we sometimes insert a number.
-export const parseArg = (
-    rawArg: PdJson.ObjectArg
-): PdJson.ObjectArg => {
+export const parseArg = (rawArg: PdJson.ObjectArg): PdJson.ObjectArg => {
     // Try to parse arg as a number
     try {
         return parseNumberArg(rawArg)

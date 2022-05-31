@@ -9,7 +9,15 @@
  *
  */
 
-import { hydrateArray, hydrateConnection, hydrateNodeArray, hydrateNodeGeneric, hydrateNodePatch, hydratePatch, NodeHydrator } from './hydrate'
+import {
+    hydrateArray,
+    hydrateConnection,
+    hydrateNodeArray,
+    hydrateNodeGeneric,
+    hydrateNodePatch,
+    hydratePatch,
+    NodeHydrator,
+} from './hydrate'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
 export const nextPatchId = (): string => `${++nextPatchId.counter}`
@@ -79,7 +87,7 @@ export const parsePatches = (
             pd.patches[currentPatch.id] = currentPatch
             patchTokenizedLinesMap[currentPatch.id] = []
 
-        // If not first line, starts a subpatch
+            // If not first line, starts a subpatch
         } else if (_tokensMatch(tokens, '#N', 'canvas')) {
             ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
                 pd,
@@ -87,7 +95,7 @@ export const parsePatches = (
                 patchTokenizedLinesMap
             )
 
-        // Restore : ends a canvas definition
+            // Restore : ends a canvas definition
         } else if (_tokensMatch(tokens, '#X', 'restore')) {
             // Creates a synthetic node that our parser will hydrate at a later stage
             tokenizedLines[0].tokens = [
@@ -97,7 +105,7 @@ export const parsePatches = (
             ]
             return [pd, tokenizedLines, patchTokenizedLinesMap]
 
-        // A normal chunk to add to the current patch
+            // A normal chunk to add to the current patch
         } else {
             patchTokenizedLinesMap[currentPatch.id].push(tokenizedLines.shift())
         }
