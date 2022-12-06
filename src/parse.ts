@@ -33,7 +33,7 @@ const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
 
 // Parses a Pd file, returns a simplified JSON version
-export default (pdString: Pd.PdString): PdJson.Pd => {
+export default (pdString: PdJson.PdString): PdJson.Pd => {
     let pd: PdJson.Pd = {
         patches: {},
         arrays: {},

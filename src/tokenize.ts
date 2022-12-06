@@ -9,6 +9,8 @@
  *
  */
 
+import { PdJson } from "@webpd/pd-json"
+
 export type Tokens = Array<string>
 
 export interface TokenizedLine {
@@ -26,7 +28,7 @@ export const LINES_RE = /(#((.|\r|\n)*?)[^\\\\])\r{0,1}\n{0,1};\r{0,1}(\n|$)/gi
 // Helper function to reverse a string
 const _reverseString = (s: string): string => s.split('').reverse().join('')
 
-export default (pdString: Pd.PdString): Array<TokenizedLine> => {
+export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
     const tokenizedLines: Array<TokenizedLine> = []
 
     // use our regular expression to match instances of valid Pd lines
