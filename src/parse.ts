@@ -9,6 +9,7 @@
  *
  */
 
+import { PdJson } from '@webpd/pd-json'
 import {
     hydrateArray,
     hydrateConnection,

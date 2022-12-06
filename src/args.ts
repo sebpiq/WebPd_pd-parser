@@ -10,6 +10,7 @@
  */
 
 import _isString from 'lodash.isstring'
+import { PdJson } from '@webpd/pd-json'
 
 // Regular expressions to detect escaped special chars.
 const ESCAPED_DOLLAR_VAR_RE_GLOB = /\\(\$\d+)/g

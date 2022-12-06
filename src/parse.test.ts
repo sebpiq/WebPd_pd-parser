@@ -13,7 +13,8 @@ import assert from 'assert'
 import parse, { parsePatches, nextPatchId, nextArrayId } from './parse'
 import round from 'lodash.round'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
-import TEST_PATCHES from '@webpd/shared/test-patches'
+import TEST_PATCHES from '@webpd/pd-json/test-patches'
+import { PdJson } from '@webpd/pd-json'
 
 const roundArray = (array: Array<number>, precision: number): Array<number> =>
     array.map((val) => round(val, precision))

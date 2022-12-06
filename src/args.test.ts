@@ -9,6 +9,7 @@
  *
  */
 
+import { PdJson } from '@webpd/pd-json'
 import assert from 'assert'
 import {
     parseBoolArg,
