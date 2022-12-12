@@ -23,9 +23,9 @@ const assertTokenizedLinesEqual = (
     actualTokenizedLines: Array<TokenizedLine>,
     expectedTokens: Array<Tokens>
 ): void => {
-    assert.equal(actualTokenizedLines.length, expectedTokens.length)
+    assert.strictEqual(actualTokenizedLines.length, expectedTokens.length)
     actualTokenizedLines.forEach(({ tokens: actualTokens }, i) => {
-        assert.deepEqual(actualTokens, expectedTokens[i])
+        assert.deepStrictEqual(actualTokens, expectedTokens[i])
     })
 }
 
@@ -44,17 +44,17 @@ describe('parse', () => {
                 remainingTokenizedLines,
                 patchesTokenizedLines,
             ] = parsePatches(emptyPd, tokenizedLines)
-            assert.deepEqual(remainingTokenizedLines, [])
-            assert.equal(Object.keys(patchesTokenizedLines).length, 3)
+            assert.deepStrictEqual(remainingTokenizedLines, [])
+            assert.strictEqual(Object.keys(patchesTokenizedLines).length, 3)
 
             // root patch
-            assert.deepEqual(pd.patches[0].layout, {
+            assert.deepStrictEqual(pd.patches[0].layout, {
                 x: 340,
                 y: 223,
                 width: 450,
                 height: 300,
             })
-            assert.deepEqual(pd.patches[0].args, ['10'])
+            assert.deepStrictEqual(pd.patches[0].args, ['10'])
             assertTokenizedLinesEqual(patchesTokenizedLines[0], [
                 ['#X', 'obj', '78', '81', 'osc~'],
                 ['PATCH', '1', '79', '117', 'pd', 'subPatch'],
@@ -65,14 +65,14 @@ describe('parse', () => {
             ])
 
             // subpatch
-            assert.deepEqual(pd.patches[1].layout, {
+            assert.deepStrictEqual(pd.patches[1].layout, {
                 x: 447,
                 y: 260,
                 width: 450,
                 height: 300,
-                openOnLoad: '1',
+                openOnLoad: true,
             })
-            assert.deepEqual(pd.patches[1].args, ['mySubpatch'])
+            assert.deepStrictEqual(pd.patches[1].args, ['mySubpatch'])
             assertTokenizedLinesEqual(patchesTokenizedLines[1], [
                 ['#X', 'obj', '46', '39', 'inlet~'],
                 ['#X', 'obj', '47', '83', 'delwrite~', 'myDel'],
@@ -82,16 +82,16 @@ describe('parse', () => {
                 ['#X', 'connect', '0', '0', '1', '0'],
                 ['#X', 'connect', '2', '0', '3', '0'],
             ])
-
+            '1'
             // sub-subpatch
-            assert.deepEqual(pd.patches[2].layout, {
+            assert.deepStrictEqual(pd.patches[2].layout, {
                 x: 842,
                 y: 260,
                 width: 450,
                 height: 300,
-                openOnLoad: '1',
+                openOnLoad: true,
             })
-            assert.deepEqual(pd.patches[2].args, ['subSubPatch'])
+            assert.deepStrictEqual(pd.patches[2].args, ['subSubPatch'])
             assertTokenizedLinesEqual(patchesTokenizedLines[2], [
                 ['#X', 'obj', '67', '67', 'outlet~'],
                 ['#X', 'obj', '66', '32', 'phasor~', '-440'],
@@ -103,11 +103,11 @@ describe('parse', () => {
     describe('parse', () => {
         it('should parse simple patch', () => {
             const pd = parse(TEST_PATCHES.simple)
-            assert.equal(Object.keys(pd.patches).length, 1)
-            assert.equal(Object.keys(pd.arrays).length, 0)
+            assert.strictEqual(Object.keys(pd.patches).length, 1)
+            assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.deepEqual(patch, {
+            assert.deepStrictEqual(patch, {
                 id: '0',
                 layout: { x: 778, y: 17, width: 450, height: 300 },
                 args: ['10'],
@@ -138,11 +138,11 @@ describe('parse', () => {
 
         it('should parse objects and controls rightly', () => {
             const pd = parse(TEST_PATCHES.nodeElems)
-            assert.equal(Object.keys(pd.patches).length, 1)
-            assert.equal(Object.keys(pd.arrays).length, 0)
+            assert.strictEqual(Object.keys(pd.patches).length, 1)
+            assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.deepEqual(patch.nodes[0], {
+            assert.deepStrictEqual(patch.nodes[0], {
                 id: '0',
                 type: 'floatatom',
                 args: [0, 0, '-', '-'],
@@ -155,15 +155,15 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepEqual(patch.nodes[1], {
-                id: 1,
+            assert.deepStrictEqual(patch.nodes[1], {
+                id: '1',
                 type: 'msg',
                 args: [89],
                 layout: { x: 73, y: 43 },
             })
 
-            assert.deepEqual(patch.nodes[2], {
-                id: 2,
+            assert.deepStrictEqual(patch.nodes[2], {
+                id: '2',
                 type: 'bng',
                 args: [0, 'empty', 'empty'],
                 layout: {
@@ -173,18 +173,18 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 17,
                     labelY: 7,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -1,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-1',
                     hold: 250,
                     interrupt: 50,
                 },
             })
 
-            assert.deepEqual(patch.nodes[3], {
-                id: 3,
+            assert.deepStrictEqual(patch.nodes[3], {
+                id: '3',
                 type: 'tgl',
                 args: [1, 'tglSendBla', 'tglRcvBla', 10, 10],
                 layout: {
@@ -194,16 +194,16 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 17,
                     labelY: 7,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 4,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -262144,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-262144',
                 },
             })
 
-            assert.deepEqual(patch.nodes[4], {
-                id: 4,
+            assert.deepStrictEqual(patch.nodes[4], {
+                id: '4',
                 type: 'nbx',
                 args: [-1e37, 1e37, 1, 'empty', 'empty', 56789],
                 layout: {
@@ -215,17 +215,17 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 0,
                     labelY: -8,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -1,
-                    logHeight: 256,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-1',
+                    logHeight: '256',
                 },
             })
 
-            assert.deepEqual(patch.nodes[5], {
-                id: 5,
+            assert.deepStrictEqual(patch.nodes[5], {
+                id: '5',
                 type: 'hsl',
                 args: [0, 1270, 1, 'empty', 'empty', 580],
                 layout: {
@@ -237,17 +237,17 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: -2,
                     labelY: -8,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -1,
-                    steadyOnClick: 1,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-1',
+                    steadyOnClick: '1',
                 },
             })
 
-            assert.deepEqual(patch.nodes[6], {
-                id: 6,
+            assert.deepStrictEqual(patch.nodes[6], {
+                id: '6',
                 type: 'vradio',
                 args: [1, 0, 8, 'empty', 'empty', 0],
                 layout: {
@@ -257,16 +257,16 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 0,
                     labelY: -8,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -1,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-1',
                 },
             })
 
-            assert.deepEqual(patch.nodes[7], {
-                id: 7,
+            assert.deepStrictEqual(patch.nodes[7], {
+                id: '7',
                 type: 'vu',
                 args: ['empty', 0],
                 layout: {
@@ -277,16 +277,16 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: -1,
                     labelY: -8,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -66577,
-                    labelColor: -1,
+                    bgColor: '-66577',
+                    labelColor: '-1',
                     log: 1,
                 },
             })
 
-            assert.deepEqual(patch.nodes[8], {
-                id: 8,
+            assert.deepStrictEqual(patch.nodes[8], {
+                id: '8',
                 type: 'cnv',
                 args: ['empty', 'empty', 0],
                 layout: {
@@ -298,22 +298,22 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 20,
                     labelY: 12,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 14,
-                    bgColor: -233017,
-                    labelColor: -66577,
+                    bgColor: '-233017',
+                    labelColor: '-66577',
                 },
             })
 
-            assert.deepEqual(patch.nodes[9], {
-                id: 9,
+            assert.deepStrictEqual(patch.nodes[9], {
+                id: '9',
                 type: 'symbolatom',
                 args: [0, 0, '-', '-'],
                 layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '-' },
             })
 
-            assert.deepEqual(patch.nodes[10], {
-                id: 10,
+            assert.deepStrictEqual(patch.nodes[10], {
+                id: '10',
                 type: 'vsl',
                 args: [0, 12700, 1, 'empty', 'empty', 9500],
                 layout: {
@@ -325,17 +325,17 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 0,
                     labelY: -9,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -1,
-                    steadyOnClick: 1,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-1',
+                    steadyOnClick: '1',
                 },
             })
 
-            assert.deepEqual(patch.nodes[11], {
-                id: 11,
+            assert.deepStrictEqual(patch.nodes[11], {
+                id: '11',
                 type: 'hradio',
                 args: [1, 0, 8, 'empty', 'empty', 0],
                 layout: {
@@ -345,46 +345,46 @@ describe('parse', () => {
                     label: 'empty',
                     labelX: 0,
                     labelY: -8,
-                    labelFont: 0,
+                    labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: -262144,
-                    fgColor: -1,
-                    labelColor: -1,
+                    bgColor: '-262144',
+                    fgColor: '-1',
+                    labelColor: '-1',
                 },
             })
 
-            assert.deepEqual(patch.nodes[12], {
-                id: 12,
+            assert.deepStrictEqual(patch.nodes[12], {
+                id: '12',
                 type: 'text',
                 args: ['< this comment should be aligned to the hradio'],
                 layout: { x: 205, y: 308 },
             })
 
-            assert.deepEqual(patch.connections, [
+            assert.deepStrictEqual(patch.connections, [
                 {
-                    source: { nodeId: 1, portletId: 0 },
-                    sink: { nodeId: 0, portletId: 0 },
+                    source: { nodeId: '1', portletId: 0 },
+                    sink: { nodeId: '0', portletId: 0 },
                 },
                 {
-                    source: { nodeId: 2, portletId: 0 },
-                    sink: { nodeId: 0, portletId: 0 },
+                    source: { nodeId: '2', portletId: 0 },
+                    sink: { nodeId: '0', portletId: 0 },
                 },
                 {
-                    source: { nodeId: 6, portletId: 0 },
-                    sink: { nodeId: 4, portletId: 0 },
+                    source: { nodeId: '6', portletId: 0 },
+                    sink: { nodeId: '4', portletId: 0 },
                 },
             ])
         })
 
         it('should parse array rightly', () => {
             const pd = parse(TEST_PATCHES.arrays)
-            assert.equal(Object.keys(pd.patches).length, 2)
-            assert.equal(Object.keys(pd.arrays).length, 1)
+            assert.strictEqual(Object.keys(pd.patches).length, 2)
+            assert.strictEqual(Object.keys(pd.arrays).length, 1)
             const patch = pd.patches['0']
             const arraySubpatch = pd.patches['1']
             const array = pd.arrays['0']
 
-            assert.deepEqual(patch, {
+            assert.deepStrictEqual(patch, {
                 id: '0',
                 layout: { x: 667, y: 72, width: 551, height: 408 },
                 args: ['10'],
@@ -408,14 +408,14 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepEqual(arraySubpatch, {
+            assert.deepStrictEqual(arraySubpatch, {
                 id: '1',
                 layout: {
                     x: 0,
                     y: 0,
                     width: 450,
                     height: 300,
-                    openOnLoad: '0',
+                    openOnLoad: false,
                 },
                 args: ['(subpatch)'],
                 nodes: {
@@ -426,7 +426,7 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 { ...array, data: roundArray(array.data, 5) },
                 {
                     id: '0',
@@ -474,12 +474,12 @@ describe('parse', () => {
 
         it('should parse graph rightly', () => {
             const pd = parse(TEST_PATCHES.graphs)
-            assert.equal(Object.keys(pd.patches).length, 2)
-            assert.equal(Object.keys(pd.arrays).length, 0)
+            assert.strictEqual(Object.keys(pd.patches).length, 2)
+            assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
             const graphSubpatch = pd.patches[1]
 
-            assert.deepEqual(patch, {
+            assert.deepStrictEqual(patch, {
                 id: '0',
                 layout: { x: 49, y: 82, width: 450, height: 300 },
                 args: ['10'],
@@ -497,14 +497,14 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepEqual(graphSubpatch, {
+            assert.deepStrictEqual(graphSubpatch, {
                 id: '1',
                 layout: {
                     x: 0,
                     y: 0,
                     width: 450,
                     height: 300,
-                    openOnLoad: '0',
+                    openOnLoad: false,
                 },
                 args: ['(subpatch)'],
                 nodes: {},
@@ -516,13 +516,13 @@ describe('parse', () => {
 
         it('should parse subpatches rightly', () => {
             const pd = parse(TEST_PATCHES.subpatches)
-            assert.equal(Object.keys(pd.patches).length, 3)
-            assert.equal(Object.keys(pd.arrays).length, 0)
+            assert.strictEqual(Object.keys(pd.patches).length, 3)
+            assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
             const subpatch1 = pd.patches[1]
             const subpatch2 = pd.patches[2]
 
-            assert.deepEqual(patch, {
+            assert.deepStrictEqual(patch, {
                 id: '0',
                 layout: { x: 340, y: 223, width: 450, height: 300 },
                 args: ['10'],
@@ -549,30 +549,30 @@ describe('parse', () => {
                 },
                 connections: [
                     {
-                        source: { nodeId: 0, portletId: 0 },
-                        sink: { nodeId: 1, portletId: 0 },
+                        source: { nodeId: '0', portletId: 0 },
+                        sink: { nodeId: '1', portletId: 0 },
                     },
                     {
-                        source: { nodeId: 1, portletId: 0 },
-                        sink: { nodeId: 2, portletId: 0 },
+                        source: { nodeId: '1', portletId: 0 },
+                        sink: { nodeId: '2', portletId: 0 },
                     },
                     {
-                        source: { nodeId: 1, portletId: 0 },
-                        sink: { nodeId: 2, portletId: 1 },
+                        source: { nodeId: '1', portletId: 0 },
+                        sink: { nodeId: '2', portletId: 1 },
                     },
                 ],
                 inlets: [],
                 outlets: [],
             })
 
-            assert.deepEqual(subpatch1, {
+            assert.deepStrictEqual(subpatch1, {
                 id: '1',
                 layout: {
                     x: 447,
                     y: 260,
                     width: 450,
                     height: 300,
-                    openOnLoad: 1,
+                    openOnLoad: true,
                 },
                 args: ['mySubpatch'],
                 nodes: {
@@ -610,26 +610,26 @@ describe('parse', () => {
                 },
                 connections: [
                     {
-                        source: { nodeId: 0, portletId: 0 },
-                        sink: { nodeId: 1, portletId: 0 },
+                        source: { nodeId: '0', portletId: 0 },
+                        sink: { nodeId: '1', portletId: 0 },
                     },
                     {
-                        source: { nodeId: 2, portletId: 0 },
-                        sink: { nodeId: 3, portletId: 0 },
+                        source: { nodeId: '2', portletId: 0 },
+                        sink: { nodeId: '3', portletId: 0 },
                     },
                 ],
                 inlets: ['0'],
                 outlets: ['3'],
             })
 
-            assert.deepEqual(subpatch2, {
+            assert.deepStrictEqual(subpatch2, {
                 id: '2',
                 layout: {
                     x: 842,
                     y: 260,
                     width: 450,
                     height: 300,
-                    openOnLoad: 1,
+                    openOnLoad: true,
                 },
                 args: ['subSubPatch'],
                 nodes: {
@@ -648,8 +648,8 @@ describe('parse', () => {
                 },
                 connections: [
                     {
-                        source: { nodeId: 1, portletId: 0 },
-                        sink: { nodeId: 0, portletId: 0 },
+                        source: { nodeId: '1', portletId: 0 },
+                        sink: { nodeId: '0', portletId: 0 },
                     },
                 ],
                 inlets: [],
@@ -659,29 +659,41 @@ describe('parse', () => {
 
         it('should parse object size as saved in pd vanilla', () => {
             const pd = parse(TEST_PATCHES.objectSizePdVanilla)
-            assert.equal(Object.keys(pd.patches).length, 1)
-            assert.equal(Object.keys(pd.arrays).length, 0)
+            assert.strictEqual(Object.keys(pd.patches).length, 1)
+            assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.equal(patch.nodes[0].layout.width, 30)
-            assert.equal(patch.nodes[1].layout.width, 40)
+            assert.strictEqual(patch.nodes[0].layout.width, 30)
+            assert.strictEqual(patch.nodes[1].layout.width, 40)
         })
 
         it('should add inlets and outlets in layout order', () => {
             const pd1 = parse(TEST_PATCHES.portletsOrder1)
             const pd2 = parse(TEST_PATCHES.portletsOrder2)
-            assert.deepEqual(pd1.patches[1].inlets, ['0', '1'])
-            assert.deepEqual(pd1.patches[1].outlets, ['2', '3'])
-            assert.deepEqual(pd2.patches[3].inlets, ['1', '0'])
-            assert.deepEqual(pd2.patches[3].outlets, ['3', '2'])
+            assert.deepStrictEqual(pd1.patches[1].inlets, ['0', '1'])
+            assert.deepStrictEqual(pd1.patches[1].outlets, ['2', '3'])
+            assert.deepStrictEqual(pd2.patches[3].inlets, ['1', '0'])
+            assert.deepStrictEqual(pd2.patches[3].outlets, ['3', '2'])
         })
+
+        it('should manage to parse without newline at the end of the file', () => {
+            const patchStr =
+                '#N canvas 306 267 645 457 10;\n' +
+                '#X obj 41 27 osc~ 220;\n' +
+                '#X obj 41 50 dac~;\n' +
+                '#X connect 0 0 1 0;'
+            const pd = parse(patchStr)
+            const patch = pd.patches[0]
+            assert.strictEqual(Object.keys(patch.nodes).length, 2)
+            assert.strictEqual(patch.connections.length, 1)
+        })        
 
         it('should fail with an unknown element', () => {
             const patchStr =
                 '#N canvas 778 17 450 300 10;\n' +
                 '#X obj 14 13 loadbang;\n' +
                 '#X weirdElement 14 34 dac~;\n' +
-                '#X connect 0 0 1 0;'
+                '#X connect 0 0 1 0;\n'
             assert.throws(() => {
                 parse(patchStr)
             })
@@ -692,7 +704,7 @@ describe('parse', () => {
                 '#N canvas 778 17 450 300 10;\n' +
                 '#X obj 14 13 loadbang;\n' +
                 '#WEIRD dac~ 14 34 dac~;\n' +
-                '#X connect 0 0 1 0;'
+                '#X connect 0 0 1 0;\n'
             assert.throws(() => {
                 parse(patchStr)
             })
