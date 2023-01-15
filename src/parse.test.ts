@@ -107,7 +107,7 @@ describe('parse', () => {
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.deepStrictEqual(patch, {
+            assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
                 layout: { x: 778, y: 17, width: 450, height: 300 },
                 args: ['10'],
@@ -115,12 +115,14 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         type: 'loadbang',
+                        nodeClass: 'generic',
                         args: [],
                         layout: { x: 14, y: 13 },
                     },
                     '1': {
                         id: '1',
                         type: 'print',
+                        nodeClass: 'generic',
                         args: ['bla'],
                         layout: { x: 14, y: 34 },
                     },
@@ -142,9 +144,10 @@ describe('parse', () => {
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.deepStrictEqual(patch.nodes[0], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[0], {
                 id: '0',
                 type: 'floatatom',
+                nodeClass: 'control',
                 args: [0, 0, '-', '-'],
                 layout: {
                     x: 73,
@@ -155,16 +158,18 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[1], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[1], {
                 id: '1',
                 type: 'msg',
+                nodeClass: 'generic',
                 args: [89],
                 layout: { x: 73, y: 43 },
             })
 
-            assert.deepStrictEqual(patch.nodes[2], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[2], {
                 id: '2',
                 type: 'bng',
+                nodeClass: 'control',
                 args: [0, 'empty', 'empty'],
                 layout: {
                     size: 15,
@@ -183,9 +188,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[3], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[3], {
                 id: '3',
                 type: 'tgl',
+                nodeClass: 'control',
                 args: [1, 'tglSendBla', 'tglRcvBla', 10, 10],
                 layout: {
                     x: 144,
@@ -202,9 +208,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[4], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[4], {
                 id: '4',
                 type: 'nbx',
+                nodeClass: 'control',
                 args: [-1e37, 1e37, 1, 'empty', 'empty', 56789],
                 layout: {
                     x: 180,
@@ -224,9 +231,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[5], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[5], {
                 id: '5',
                 type: 'hsl',
+                nodeClass: 'control',
                 args: [0, 1270, 1, 'empty', 'empty', 580],
                 layout: {
                     x: 242,
@@ -246,9 +254,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[6], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[6], {
                 id: '6',
                 type: 'vradio',
+                nodeClass: 'control',
                 args: [1, 0, 8, 'empty', 'empty', 0],
                 layout: {
                     x: 249,
@@ -265,9 +274,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[7], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[7], {
                 id: '7',
                 type: 'vu',
+                nodeClass: 'control',
                 args: ['empty', 0],
                 layout: {
                     x: 89,
@@ -285,9 +295,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[8], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[8], {
                 id: '8',
                 type: 'cnv',
+                nodeClass: 'control',
                 args: ['empty', 'empty', 0],
                 layout: {
                     x: 317,
@@ -305,16 +316,18 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[9], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[9], {
                 id: '9',
                 type: 'symbolatom',
+                nodeClass: 'control',
                 args: [0, 0, '-', '-'],
                 layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '-' },
             })
 
-            assert.deepStrictEqual(patch.nodes[10], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[10], {
                 id: '10',
                 type: 'vsl',
+                nodeClass: 'control',
                 args: [0, 12700, 1, 'empty', 'empty', 9500],
                 layout: {
                     x: 458,
@@ -334,9 +347,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[11], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[11], {
                 id: '11',
                 type: 'hradio',
+                nodeClass: 'control',
                 args: [1, 0, 8, 'empty', 'empty', 0],
                 layout: {
                     x: 69,
@@ -353,14 +367,15 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual(patch.nodes[12], {
+            assert.deepStrictEqual<PdJson.Node>(patch.nodes[12], {
                 id: '12',
                 type: 'text',
+                nodeClass: 'generic',
                 args: ['< this comment should be aligned to the hradio'],
                 layout: { x: 205, y: 308 },
             })
 
-            assert.deepStrictEqual(patch.connections, [
+            assert.deepStrictEqual<Array<PdJson.Connection>>(patch.connections, [
                 {
                     source: { nodeId: '1', portletId: 0 },
                     sink: { nodeId: '0', portletId: 0 },
@@ -376,31 +391,48 @@ describe('parse', () => {
             ])
         })
 
-        it('should parse array rightly', () => {
+        it('should parse arrays rightly', () => {
             const pd = parse(TEST_PATCHES.arrays)
-            assert.strictEqual(Object.keys(pd.patches).length, 2)
-            assert.strictEqual(Object.keys(pd.arrays).length, 1)
+            assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2', '3'])
+            assert.deepStrictEqual(Object.keys(pd.arrays), ['0', '1', '2'])
             const patch = pd.patches['0']
-            const arraySubpatch = pd.patches['1']
-            const array = pd.arrays['0']
 
-            assert.deepStrictEqual(patch, {
+            const arraySubpatch = pd.patches['1']
+            const arrayNotSavingContentPointsSubpatch = pd.patches['2']
+            const arrayNotSavingContentBezierSubpatch = pd.patches['3']
+            
+            const arrayPolygon = pd.arrays['0']
+            const arrayNotSavingContentPoints = pd.arrays['1']
+            const arrayNotSavingContentBezier = pd.arrays['2']
+
+            assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { x: 667, y: 72, width: 551, height: 408 },
+                layout: { x: 667, y: 72, width: 681, height: 545 },
                 args: ['10'],
                 nodes: {
                     '0': {
                         id: '0',
                         type: 'graph',
+                        nodeClass: 'subpatch',
                         args: [],
                         layout: { x: 157, y: 26 },
                         refId: '1',
                     },
                     '1': {
                         id: '1',
-                        type: 'osc~',
-                        args: [440],
-                        layout: { x: 19, y: 370 },
+                        type: 'graph',
+                        nodeClass: 'subpatch',
+                        args: [],
+                        layout: { x: 158, y: 191 },
+                        refId: '2',
+                    },
+                    '2': {
+                        id: '2',
+                        type: 'graph',
+                        nodeClass: 'subpatch',
+                        args: [],
+                        layout: { x: 160, y: 358 },
+                        refId: '3',
                     },
                 },
                 connections: [],
@@ -408,7 +440,7 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepStrictEqual(arraySubpatch, {
+            assert.deepStrictEqual<PdJson.Patch>(arraySubpatch, {
                 id: '1',
                 layout: {
                     x: 0,
@@ -419,18 +451,27 @@ describe('parse', () => {
                 },
                 args: ['(subpatch)'],
                 nodes: {
-                    '0': { id: '0', type: 'array', refId: '0', args: [] },
+                    '0': { id: '0', type: 'array', nodeClass: 'array', refId: '0', args: [] },
                 },
                 connections: [],
                 inlets: [],
                 outlets: [],
             })
 
-            assert.deepStrictEqual(
-                { ...array, data: roundArray(array.data, 5) },
+            assert.deepStrictEqual<PdJson.Patch['nodes']>(arrayNotSavingContentPointsSubpatch.nodes, {
+                '0': { id: '0', type: 'array', nodeClass: 'array', refId: '1', args: [] },
+            })
+
+            assert.deepStrictEqual<PdJson.Patch['nodes']>(arrayNotSavingContentBezierSubpatch.nodes, {
+                '0': { id: '0', type: 'array', nodeClass: 'array', refId: '2', args: [] },
+            })
+
+            assert.deepStrictEqual<PdJson.PdArray>(
+                { ...arrayPolygon, data: roundArray(arrayPolygon.data, 5) },
                 {
                     id: '0',
-                    args: ['myTable', 35],
+                    args: ['myArrayPolygon', 35, 1],
+                    layout: {drawAs: 'polygon'},
                     data: [
                         0.1,
                         0.2,
@@ -470,6 +511,26 @@ describe('parse', () => {
                     ],
                 }
             )
+
+            assert.deepStrictEqual<PdJson.PdArray>(
+                arrayNotSavingContentPoints,
+                {
+                    id: '1',
+                    args: ['myArrayNotSavingContentPoints', 10, 0],
+                    layout: {drawAs: 'points'},
+                    data: null,
+                }
+            )
+
+            assert.deepStrictEqual<PdJson.PdArray>(
+                arrayNotSavingContentBezier,
+                {
+                    id: '2',
+                    args: ['myArrayNotSavingContentBezier', 100, 0],
+                    layout: {drawAs: 'bezier'},
+                    data: null,
+                }
+            )
         })
 
         it('should parse graph rightly', () => {
@@ -479,7 +540,7 @@ describe('parse', () => {
             const patch = pd.patches[0]
             const graphSubpatch = pd.patches[1]
 
-            assert.deepStrictEqual(patch, {
+            assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
                 layout: { x: 49, y: 82, width: 450, height: 300 },
                 args: ['10'],
@@ -487,6 +548,7 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         refId: '1',
+                        nodeClass: 'subpatch',
                         type: 'graph',
                         args: [],
                         layout: { x: 100, y: 20 },
@@ -497,7 +559,7 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepStrictEqual(graphSubpatch, {
+            assert.deepStrictEqual<PdJson.Patch>(graphSubpatch, {
                 id: '1',
                 layout: {
                     x: 0,
@@ -522,7 +584,7 @@ describe('parse', () => {
             const subpatch1 = pd.patches[1]
             const subpatch2 = pd.patches[2]
 
-            assert.deepStrictEqual(patch, {
+            assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
                 layout: { x: 340, y: 223, width: 450, height: 300 },
                 args: ['10'],
@@ -530,12 +592,14 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         type: 'osc~',
+                        nodeClass: 'generic',
                         args: [],
                         layout: { x: 78, y: 81 },
                     },
                     '1': {
                         id: '1',
                         type: 'pd',
+                        nodeClass: 'subpatch',
                         args: ['subPatch'],
                         layout: { x: 79, y: 117 },
                         refId: '1',
@@ -543,6 +607,7 @@ describe('parse', () => {
                     '2': {
                         id: '2',
                         type: 'dac~',
+                        nodeClass: 'generic',
                         args: [],
                         layout: { x: 80, y: 175 },
                     },
@@ -565,7 +630,7 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepStrictEqual(subpatch1, {
+            assert.deepStrictEqual<PdJson.Patch>(subpatch1, {
                 id: '1',
                 layout: {
                     x: 447,
@@ -579,30 +644,35 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         type: 'inlet~',
+                        nodeClass: 'generic',
                         args: [],
                         layout: { x: 46, y: 39 },
                     },
                     '1': {
                         id: '1',
                         type: 'delwrite~',
+                        nodeClass: 'generic',
                         args: ['myDel'],
                         layout: { x: 47, y: 83 },
                     },
                     '2': {
                         id: '2',
                         type: 'delread~',
+                        nodeClass: 'generic',
                         args: ['myDel'],
                         layout: { x: 47, y: 126 },
                     },
                     '3': {
                         id: '3',
                         type: 'outlet~',
+                        nodeClass: 'generic',
                         args: [],
                         layout: { x: 48, y: 165 },
                     },
                     '4': {
                         id: '4',
                         type: 'pd',
+                        nodeClass: 'subpatch',
                         args: ['subSubPatch'],
                         layout: { x: 183, y: 83 },
                         refId: '2',
@@ -622,7 +692,7 @@ describe('parse', () => {
                 outlets: ['3'],
             })
 
-            assert.deepStrictEqual(subpatch2, {
+            assert.deepStrictEqual<PdJson.Patch>(subpatch2, {
                 id: '2',
                 layout: {
                     x: 842,
@@ -636,12 +706,14 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         type: 'outlet~',
+                        nodeClass: 'generic',
                         args: [],
                         layout: { x: 67, y: 67 },
                     },
                     '1': {
                         id: '1',
                         type: 'phasor~',
+                        nodeClass: 'generic',
                         args: [-440],
                         layout: { x: 66, y: 32 },
                     },

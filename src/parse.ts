@@ -9,15 +9,16 @@
  *
  */
 
-import { PdJson } from '@webpd/pd-json'
+import { CONTROL_TYPE, PdJson } from '@webpd/pd-json'
 import {
     hydrateArray,
     hydrateConnection,
     hydrateNodeArray,
+    hydrateNodeBase,
+    hydrateNodeControl,
     hydrateNodeGeneric,
     hydrateNodePatch,
     hydratePatch,
-    NodeHydrator,
 } from './hydrate'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
@@ -159,8 +160,8 @@ const parseArrays = (
     tokenizedLines = [...tokenizedLines]
     const remainingTokenizedLines: Array<TokenizedLine> = []
 
-    // keep the last table for handling correctly
-    // the table related instructions which might follow.
+    // keep the last array for handling correctly
+    // the array related instructions which might follow.
     let currentArray: PdJson.PdArray | null = null
 
     while (tokenizedLines.length) {
@@ -179,11 +180,11 @@ const parseArrays = (
             // array data to add to the current array
         } else if (_tokensMatch(tokens, '#A')) {
             if (!currentArray) {
-                throw new Error('got table data outside of a table.')
+                throw new Error('got array data outside of a array.')
             }
 
-            // reads in part of an array/table of data, starting at the index specified in this line
-            // name of the array/table comes from the the '#X array' and '#X restore' matches above
+            // reads in part of an array of data, starting at the index specified in this line
+            // name of the array comes from the the '#X array' and '#X restore' matches above
             const indexOffset = parseFloat(tokens[1])
             tokens.slice(2).forEach((rawVal, i) => {
                 const val = parseFloat(rawVal)
@@ -222,19 +223,27 @@ const parseNodesAndConnections = (
     while (tokenizedLines.length) {
         const { tokens } = tokenizedLines[0]
 
-        let nodeHydrator: NodeHydrator | null
+        let node: PdJson.Node
         if (_tokensMatch(tokens, 'PATCH')) {
-            nodeHydrator = hydrateNodePatch
+            node = hydrateNodePatch(nextId(), tokenizedLines.shift())
+
         } else if (_tokensMatch(tokens, 'ARRAY')) {
-            nodeHydrator = hydrateNodeArray
+            node = hydrateNodeArray(nextId(), tokenizedLines.shift())
+            
         } else if (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
-            nodeHydrator = hydrateNodeGeneric
+            const tokenizedLine = tokenizedLines.shift()
+            const nodeBase = hydrateNodeBase(nextId(), tokenizedLine)
+            if (Object.keys(CONTROL_TYPE).includes(nodeBase.type)) {
+                node = hydrateNodeControl(nodeBase, tokenizedLine, nodeBase.args as Tokens)
+
+            } else {
+                node = hydrateNodeGeneric(nodeBase, tokenizedLine)
+            }
         }
 
-        if (nodeHydrator) {
-            const node = nodeHydrator(nextId(), tokenizedLines.shift())
+        if (node) {
             patch.nodes[node.id] = node
             continue
         }

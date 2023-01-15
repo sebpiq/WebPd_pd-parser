@@ -1,4 +1,5 @@
 node_modules
 dist
 tsconfig-generated-for-rollup.json
-rollup-stats.html
+tmp
+.vscode

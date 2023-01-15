@@ -13,25 +13,6 @@ import { PdJson } from '@webpd/pd-json'
 import { parseBoolArg, parseNumberArg, parseArg } from './args'
 import { TOKENS_RE, TokenizedLine, Tokens } from './tokenize'
 
-export type NodeHydrator = (
-    id: PdJson.ObjectLocalId,
-    tokenizedLine: TokenizedLine
-) => PdJson.GenericNode
-
-enum ControlType {
-    floatatom = 'floatatom',
-    symbolatom = 'symbolatom',
-    bng = 'bng',
-    tgl = 'tgl',
-    nbx = 'nbx',
-    vsl = 'vsl',
-    hsl = 'hsl',
-    vradio = 'vradio',
-    hradio = 'hradio',
-    vu = 'vu',
-    cnv = 'cnv',
-}
-
 export const hydratePatch = (
     id: PdJson.ObjectGlobalId,
     { tokens }: TokenizedLine
@@ -62,19 +43,34 @@ export const hydrateArray = (
 ): PdJson.PdArray => {
     const arrayName = tokens[2]
     const arraySize = parseFloat(tokens[3])
+    // Options flag :
+    // first bit if for `saveContents` second for `drawAs`
+    const optionsFlag = parseFloat(tokens[5])
+    const saveContents = (optionsFlag % 2) as 0 | 1
+    const drawAs = ['polygon', 'points', 'bezier'][
+        optionsFlag >>> 1
+    ] as PdJson.ArrayLayout['drawAs']
     return {
         id,
-        args: [arrayName, arraySize],
-        data: Array(arraySize).fill(0),
+        args: [arrayName, arraySize, saveContents],
+        data: saveContents ? Array(arraySize).fill(0) : null,
+        layout: {
+            drawAs,
+        },
     }
 }
 
-export const hydrateNodePatch: NodeHydrator = (
+export const hydrateNodePatch = (
     id: PdJson.ObjectLocalId,
     { tokens }: TokenizedLine
-): PdJson.GenericNode => {
+): PdJson.SubpatchNode => {
     const canvasType = tokens[4]
     const args = []
+
+    if (canvasType !== 'pd' && canvasType !== 'graph') {
+        throw new Error(`unknown canvasType : ${canvasType}`)
+    }
+
     // add subpatch name
     if (canvasType === 'pd') {
         args.push(tokens[5])
@@ -84,6 +80,7 @@ export const hydrateNodePatch: NodeHydrator = (
         id,
         type: canvasType,
         refId: tokens[1],
+        nodeClass: 'subpatch',
         args,
         layout: {
             x: parseInt(tokens[2], 10),
@@ -92,20 +89,21 @@ export const hydrateNodePatch: NodeHydrator = (
     }
 }
 
-export const hydrateNodeArray: NodeHydrator = (
+export const hydrateNodeArray = (
     id: PdJson.ObjectLocalId,
     { tokens }: TokenizedLine
-): PdJson.GenericNode => ({
+): PdJson.ArrayNode => ({
     id,
     args: [],
     type: 'array',
+    nodeClass: 'array',
     refId: tokens[1],
 })
 
-export const hydrateNodeGeneric: NodeHydrator = (
+export const hydrateNodeBase = (
     id: PdJson.ObjectLocalId,
-    { tokens, lineAfterComma }: TokenizedLine
-): PdJson.GenericNode => {
+    { tokens }: TokenizedLine
+): PdJson.BaseNode => {
     const elementType = tokens[1]
     let type // the object name
     let args: Tokens // the construction args for the object
@@ -126,7 +124,7 @@ export const hydrateNodeGeneric: NodeHydrator = (
         args = [tokens.slice(4).join(' ')]
     }
 
-    let node: PdJson.GenericNode = {
+    return {
         id,
         type,
         args,
@@ -135,26 +133,6 @@ export const hydrateNodeGeneric: NodeHydrator = (
             y: parseNumberArg(tokens[3]),
         },
     }
-
-    // Handling controls' creation arguments
-    if (Object.keys(ControlType).includes(type)) {
-        node = hydrateNodeControl(node as PdJson.ControlNode, args)
-    }
-
-    // Handling stuff after the comma
-    // I have no idea what's the specification for this, so this is really reverse
-    // engineering on what appears in pd files.
-    if (lineAfterComma) {
-        const afterCommaTokens = lineAfterComma.split(TOKENS_RE)
-        while (afterCommaTokens.length) {
-            const command = afterCommaTokens.shift()
-            if (command === 'f')
-                node.layout.width = parseNumberArg(afterCommaTokens.shift())
-        }
-    }
-
-    node.args = node.args.map(parseArg)
-    return node
 }
 
 export const hydrateConnection = ({
@@ -170,15 +148,27 @@ export const hydrateConnection = ({
     },
 })
 
+export const hydrateNodeGeneric = (
+    nodeBase: PdJson.BaseNode,
+    tokenizedLine: TokenizedLine
+): PdJson.GenericNode => {
+    const node: PdJson.GenericNode = {
+        ...nodeBase,
+        nodeClass: 'generic',
+    }
+    return hydrateNodeGenericAndControl(node, tokenizedLine)
+}
+
 // This is put here just for readability of the main `parse` function
-const hydrateNodeControl = (
-    node: PdJson.ControlNode,
+export const hydrateNodeControl = (
+    nodeBase: PdJson.BaseNode,
+    tokenizedLine: TokenizedLine,
     args: Tokens
 ): PdJson.ControlNode => {
-    node = {
-        layout: { ...node.layout },
-        args: [...args],
-        ...node,
+    const node: PdJson.ControlNode = {
+        ...nodeBase,
+        type: nodeBase.type as PdJson.ControlNode['type'],
+        nodeClass: 'control',
     }
     if (node.type === 'floatatom' || node.type === 'symbolatom') {
         // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
@@ -303,5 +293,34 @@ const hydrateNodeControl = (
         node.args = [args[3], args[4], args[12]]
     }
 
+    return hydrateNodeGenericAndControl(node, tokenizedLine)
+}
+
+function hydrateNodeGenericAndControl(
+    node: PdJson.GenericNode,
+    { lineAfterComma }: TokenizedLine
+): PdJson.GenericNode
+function hydrateNodeGenericAndControl(
+    node: PdJson.ControlNode,
+    { lineAfterComma }: TokenizedLine
+): PdJson.ControlNode
+
+function hydrateNodeGenericAndControl(
+    node: PdJson.ControlNode | PdJson.GenericNode,
+    { lineAfterComma }: TokenizedLine
+): PdJson.ControlNode | PdJson.GenericNode {
+    // Handling stuff after the comma
+    // I have no idea what's the specification for this, so this is really reverse
+    // engineering on what appears in pd files.
+    if (lineAfterComma) {
+        const afterCommaTokens = lineAfterComma.split(TOKENS_RE)
+        while (afterCommaTokens.length) {
+            const command = afterCommaTokens.shift()
+            if (command === 'f') {
+                node.layout.width = parseNumberArg(afterCommaTokens.shift())
+            }
+        }
+    }
+    node.args = node.args.map(parseArg)
     return node
 }
