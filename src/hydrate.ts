@@ -79,7 +79,7 @@ export const hydrateNodePatch = (
     return {
         id,
         type: canvasType,
-        refId: tokens[1],
+        patchId: tokens[1],
         nodeClass: 'subpatch',
         args,
         layout: {
@@ -97,7 +97,7 @@ export const hydrateNodeArray = (
     args: [],
     type: 'array',
     nodeClass: 'array',
-    refId: tokens[1],
+    arrayId: tokens[1],
 })
 
 export const hydrateNodeBase = (

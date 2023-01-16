@@ -416,7 +416,7 @@ describe('parse', () => {
                         nodeClass: 'subpatch',
                         args: [],
                         layout: { x: 157, y: 26 },
-                        refId: '1',
+                        patchId: '1',
                     },
                     '1': {
                         id: '1',
@@ -424,7 +424,7 @@ describe('parse', () => {
                         nodeClass: 'subpatch',
                         args: [],
                         layout: { x: 158, y: 191 },
-                        refId: '2',
+                        patchId: '2',
                     },
                     '2': {
                         id: '2',
@@ -432,7 +432,7 @@ describe('parse', () => {
                         nodeClass: 'subpatch',
                         args: [],
                         layout: { x: 160, y: 358 },
-                        refId: '3',
+                        patchId: '3',
                     },
                 },
                 connections: [],
@@ -451,7 +451,7 @@ describe('parse', () => {
                 },
                 args: ['(subpatch)'],
                 nodes: {
-                    '0': { id: '0', type: 'array', nodeClass: 'array', refId: '0', args: [] },
+                    '0': { id: '0', type: 'array', nodeClass: 'array', arrayId: '0', args: [] },
                 },
                 connections: [],
                 inlets: [],
@@ -459,11 +459,11 @@ describe('parse', () => {
             })
 
             assert.deepStrictEqual<PdJson.Patch['nodes']>(arrayNotSavingContentPointsSubpatch.nodes, {
-                '0': { id: '0', type: 'array', nodeClass: 'array', refId: '1', args: [] },
+                '0': { id: '0', type: 'array', nodeClass: 'array', arrayId: '1', args: [] },
             })
 
             assert.deepStrictEqual<PdJson.Patch['nodes']>(arrayNotSavingContentBezierSubpatch.nodes, {
-                '0': { id: '0', type: 'array', nodeClass: 'array', refId: '2', args: [] },
+                '0': { id: '0', type: 'array', nodeClass: 'array', arrayId: '2', args: [] },
             })
 
             assert.deepStrictEqual<PdJson.PdArray>(
@@ -547,7 +547,7 @@ describe('parse', () => {
                 nodes: {
                     '0': {
                         id: '0',
-                        refId: '1',
+                        patchId: '1',
                         nodeClass: 'subpatch',
                         type: 'graph',
                         args: [],
@@ -602,7 +602,7 @@ describe('parse', () => {
                         nodeClass: 'subpatch',
                         args: ['subPatch'],
                         layout: { x: 79, y: 117 },
-                        refId: '1',
+                        patchId: '1',
                     },
                     '2': {
                         id: '2',
@@ -675,7 +675,7 @@ describe('parse', () => {
                         nodeClass: 'subpatch',
                         args: ['subSubPatch'],
                         layout: { x: 183, y: 83 },
-                        refId: '2',
+                        patchId: '2',
                     },
                 },
                 connections: [

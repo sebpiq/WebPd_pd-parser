@@ -2,7 +2,7 @@
   "name": "@webpd/pd-parser",
   "version": "0.1.0",
   "description": "Parses Pd file format to JavaScript / TypeScript following the PdJson specification",
-  "main": "./dist/index.js",
+  "main": "./dist/WebPd_pd-parser/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --config node_modules/@webpd/dev/configs/jest.js",
