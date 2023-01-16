@@ -226,18 +226,19 @@ const parseNodesAndConnections = (
         let node: PdJson.Node
         if (_tokensMatch(tokens, 'PATCH')) {
             node = hydrateNodePatch(nextId(), tokenizedLines.shift())
-
         } else if (_tokensMatch(tokens, 'ARRAY')) {
             node = hydrateNodeArray(nextId(), tokenizedLines.shift())
-            
         } else if (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
             const tokenizedLine = tokenizedLines.shift()
             const nodeBase = hydrateNodeBase(nextId(), tokenizedLine)
             if (Object.keys(CONTROL_TYPE).includes(nodeBase.type)) {
-                node = hydrateNodeControl(nodeBase, tokenizedLine, nodeBase.args as Tokens)
-
+                node = hydrateNodeControl(
+                    nodeBase,
+                    tokenizedLine,
+                    nodeBase.args as Tokens
+                )
             } else {
                 node = hydrateNodeGeneric(nodeBase, tokenizedLine)
             }

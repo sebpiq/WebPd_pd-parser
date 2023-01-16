@@ -9,7 +9,7 @@
  *
  */
 
-import { PdJson } from "@webpd/pd-json"
+import { PdJson } from '@webpd/pd-json'
 
 export type Tokens = Array<string>
 

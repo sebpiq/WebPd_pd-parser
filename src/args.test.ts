@@ -71,7 +71,7 @@ describe('args', () => {
         it('should throw an error if invalid input', () => {
             assert.throws(() => parseNumberArg('bla'), ValueError)
             assert.throws(
-                () => parseNumberArg(([1] as unknown) as number),
+                () => parseNumberArg([1] as unknown as number),
                 ValueError
             )
         })
@@ -92,7 +92,7 @@ describe('args', () => {
 
         it('should raise error with invalid args', () => {
             assert.throws(() => {
-                parseArg(([1, 2] as unknown) as PdJson.ObjectArg)
+                parseArg([1, 2] as unknown as PdJson.ObjectArg)
             })
             assert.throws(() => {
                 parseArg(null)

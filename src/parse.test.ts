@@ -39,11 +39,8 @@ describe('parse', () => {
         it('should extract nested subpatches', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
             const emptyPd: PdJson.Pd = { patches: {}, arrays: {} }
-            const [
-                pd,
-                remainingTokenizedLines,
-                patchesTokenizedLines,
-            ] = parsePatches(emptyPd, tokenizedLines)
+            const [pd, remainingTokenizedLines, patchesTokenizedLines] =
+                parsePatches(emptyPd, tokenizedLines)
             assert.deepStrictEqual(remainingTokenizedLines, [])
             assert.strictEqual(Object.keys(patchesTokenizedLines).length, 3)
 
@@ -82,7 +79,7 @@ describe('parse', () => {
                 ['#X', 'connect', '0', '0', '1', '0'],
                 ['#X', 'connect', '2', '0', '3', '0'],
             ])
-            '1'
+            ;('1')
             // sub-subpatch
             assert.deepStrictEqual(pd.patches[2].layout, {
                 x: 842,
@@ -375,32 +372,40 @@ describe('parse', () => {
                 layout: { x: 205, y: 308 },
             })
 
-            assert.deepStrictEqual<Array<PdJson.Connection>>(patch.connections, [
-                {
-                    source: { nodeId: '1', portletId: 0 },
-                    sink: { nodeId: '0', portletId: 0 },
-                },
-                {
-                    source: { nodeId: '2', portletId: 0 },
-                    sink: { nodeId: '0', portletId: 0 },
-                },
-                {
-                    source: { nodeId: '6', portletId: 0 },
-                    sink: { nodeId: '4', portletId: 0 },
-                },
-            ])
+            assert.deepStrictEqual<Array<PdJson.Connection>>(
+                patch.connections,
+                [
+                    {
+                        source: { nodeId: '1', portletId: 0 },
+                        sink: { nodeId: '0', portletId: 0 },
+                    },
+                    {
+                        source: { nodeId: '2', portletId: 0 },
+                        sink: { nodeId: '0', portletId: 0 },
+                    },
+                    {
+                        source: { nodeId: '6', portletId: 0 },
+                        sink: { nodeId: '4', portletId: 0 },
+                    },
+                ]
+            )
         })
 
         it('should parse arrays rightly', () => {
             const pd = parse(TEST_PATCHES.arrays)
-            assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2', '3'])
+            assert.deepStrictEqual(Object.keys(pd.patches), [
+                '0',
+                '1',
+                '2',
+                '3',
+            ])
             assert.deepStrictEqual(Object.keys(pd.arrays), ['0', '1', '2'])
             const patch = pd.patches['0']
 
             const arraySubpatch = pd.patches['1']
             const arrayNotSavingContentPointsSubpatch = pd.patches['2']
             const arrayNotSavingContentBezierSubpatch = pd.patches['3']
-            
+
             const arrayPolygon = pd.arrays['0']
             const arrayNotSavingContentPoints = pd.arrays['1']
             const arrayNotSavingContentBezier = pd.arrays['2']
@@ -451,63 +456,55 @@ describe('parse', () => {
                 },
                 args: ['(subpatch)'],
                 nodes: {
-                    '0': { id: '0', type: 'array', nodeClass: 'array', arrayId: '0', args: [] },
+                    '0': {
+                        id: '0',
+                        type: 'array',
+                        nodeClass: 'array',
+                        arrayId: '0',
+                        args: [],
+                    },
                 },
                 connections: [],
                 inlets: [],
                 outlets: [],
             })
 
-            assert.deepStrictEqual<PdJson.Patch['nodes']>(arrayNotSavingContentPointsSubpatch.nodes, {
-                '0': { id: '0', type: 'array', nodeClass: 'array', arrayId: '1', args: [] },
-            })
+            assert.deepStrictEqual<PdJson.Patch['nodes']>(
+                arrayNotSavingContentPointsSubpatch.nodes,
+                {
+                    '0': {
+                        id: '0',
+                        type: 'array',
+                        nodeClass: 'array',
+                        arrayId: '1',
+                        args: [],
+                    },
+                }
+            )
 
-            assert.deepStrictEqual<PdJson.Patch['nodes']>(arrayNotSavingContentBezierSubpatch.nodes, {
-                '0': { id: '0', type: 'array', nodeClass: 'array', arrayId: '2', args: [] },
-            })
+            assert.deepStrictEqual<PdJson.Patch['nodes']>(
+                arrayNotSavingContentBezierSubpatch.nodes,
+                {
+                    '0': {
+                        id: '0',
+                        type: 'array',
+                        nodeClass: 'array',
+                        arrayId: '2',
+                        args: [],
+                    },
+                }
+            )
 
             assert.deepStrictEqual<PdJson.PdArray>(
                 { ...arrayPolygon, data: roundArray(arrayPolygon.data, 5) },
                 {
                     id: '0',
                     args: ['myArrayPolygon', 35, 1],
-                    layout: {drawAs: 'polygon'},
+                    layout: { drawAs: 'polygon' },
                     data: [
-                        0.1,
-                        0.2,
-                        0.3,
-                        0.4,
-                        0.5,
-                        0.6,
-                        0.7,
-                        0.8,
-                        0.9,
-                        1,
-                        1.1,
-                        1.2,
-                        1.3,
-                        1.4,
-                        1.5,
-                        1.6,
-                        1.7,
-                        1.8,
-                        1.9,
-                        2,
-                        2.1,
-                        2.2,
-                        2.3,
-                        2.4,
-                        2.5,
-                        2.6,
-                        2.7,
-                        2.8,
-                        2.9,
-                        3.0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
+                        0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1,
+                        1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2,
+                        2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 0, 0, 0, 0, 0,
                     ],
                 }
             )
@@ -517,7 +514,7 @@ describe('parse', () => {
                 {
                     id: '1',
                     args: ['myArrayNotSavingContentPoints', 10, 0],
-                    layout: {drawAs: 'points'},
+                    layout: { drawAs: 'points' },
                     data: null,
                 }
             )
@@ -527,7 +524,7 @@ describe('parse', () => {
                 {
                     id: '2',
                     args: ['myArrayNotSavingContentBezier', 100, 0],
-                    layout: {drawAs: 'bezier'},
+                    layout: { drawAs: 'bezier' },
                     data: null,
                 }
             )
@@ -758,7 +755,7 @@ describe('parse', () => {
             const patch = pd.patches[0]
             assert.strictEqual(Object.keys(patch.nodes).length, 2)
             assert.strictEqual(patch.connections.length, 1)
-        })        
+        })
 
         it('should fail with an unknown element', () => {
             const patchStr =
