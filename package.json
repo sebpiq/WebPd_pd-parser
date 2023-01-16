@@ -4,6 +4,7 @@
   "description": "Parses Pd file format to JavaScript / TypeScript following the PdJson specification",
   "main": "./dist/WebPd_pd-parser/index.js",
   "types": "./dist/types/index.d.ts",
+  "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --config node_modules/@webpd/dev/configs/jest.js",
     "rollup": "npx rollup --config node_modules/@webpd/dev/configs/rollup.mjs",
@@ -25,16 +26,10 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-typescript": "^8.3.2",
     "@types/jest": "^27.5.1",
-    "@types/lodash.isstring": "^4.0.6",
-    "@types/lodash.round": "^4.0.6",
     "@types/node": "^13.9.3",
-    "@webpd/pd-json": "file:../WebPd_pd-json",
     "@webpd/dev": "file:../WebPd_dev",
+    "@webpd/pd-json": "file:../WebPd_pd-json",
     "jest": "^28.1.0",
-    "lodash.round": "^4.0.4",
     "ts-jest": "^28.0.3"
-  },
-  "dependencies": {
-    "lodash.isstring": "^4.0.1"
   }
 }

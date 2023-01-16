@@ -9,7 +9,6 @@
  *
  */
 
-import _isString from 'lodash.isstring'
 import { PdJson } from '@webpd/pd-json'
 
 // Regular expressions to detect escaped special chars.
@@ -96,4 +95,4 @@ export class ValueError extends Error {}
 
 const isNumber = (obj: unknown): obj is number => Number.isFinite(obj)
 
-const isString = (obj: unknown): obj is string => _isString(obj)
+const isString = (obj: unknown): obj is string => typeof obj === 'string'

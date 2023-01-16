@@ -11,10 +11,18 @@
 
 import assert from 'assert'
 import parse, { parsePatches, nextPatchId, nextArrayId } from './parse'
-import round from 'lodash.round'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 import TEST_PATCHES from '@webpd/pd-json/test-patches'
 import { PdJson } from '@webpd/pd-json'
+
+export const round = (v: number, decimals: number = 4) => {
+    const rounded =
+        Math.round(v * Math.pow(10, decimals)) / Math.pow(10, decimals)
+    if (rounded === 0) {
+        return 0
+    }
+    return rounded
+}
 
 const roundArray = (array: Array<number>, precision: number): Array<number> =>
     array.map((val) => round(val, precision))
