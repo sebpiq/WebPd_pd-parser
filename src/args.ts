@@ -38,7 +38,7 @@ export const parseArg = (rawArg: PdJson.ObjectArg): PdJson.ObjectArg => {
         }
     }
 
-    throw new ValueError(`Not a valid arg  ${rawArg}`)
+    throw new ValueError(`Not a valid arg ${rawArg}`)
 }
 
 // Parses a float from a .pd file. Returns the parsed float or throws ValueError.
@@ -56,19 +56,13 @@ export const parseNumberArg = (val: PdJson.ObjectArg): number => {
     }
 }
 
-// Parses a '0' or '1' from a .pd file. Returns the equivalent boolean.
-export const parseBoolArg = (val: PdJson.ObjectArg): boolean => {
-    if (isNumber(val)) {
-        return !!val
-    } else if (isString(val)) {
-        const num = parseInt(val, 10)
-        if (!isNumber(num)) {
-            throw new ValueError(`Not a valid bool arg ${val}`)
-        }
-        return !!num
-    } else {
-        throw new ValueError(`Not a valid bool arg ${val}`)
+// Parses a '0' or '1' from a .pd file.
+export const parseBoolArg = (val: PdJson.ObjectArg): 0 | 1 => {
+    const parsed = parseNumberArg(val)
+    if (parsed === 0 || parsed === 1) {
+        return parsed
     }
+    throw new ValueError(`Should be 0 or 1`)
 }
 
 // Apply some operations to a string arg

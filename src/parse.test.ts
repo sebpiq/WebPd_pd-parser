@@ -75,7 +75,7 @@ describe('parse', () => {
                 y: 260,
                 width: 450,
                 height: 300,
-                openOnLoad: true,
+                openOnLoad: 1,
             })
             assert.deepStrictEqual(pd.patches[1].args, ['mySubpatch'])
             assertTokenizedLinesEqual(patchesTokenizedLines[1], [
@@ -94,7 +94,7 @@ describe('parse', () => {
                 y: 260,
                 width: 450,
                 height: 300,
-                openOnLoad: true,
+                openOnLoad: 1,
             })
             assert.deepStrictEqual(pd.patches[2].args, ['subSubPatch'])
             assertTokenizedLinesEqual(patchesTokenizedLines[2], [
@@ -149,7 +149,7 @@ describe('parse', () => {
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[0], {
+            assert.deepStrictEqual<PdJson.AtomNode>(patch.nodes[0], {
                 id: '0',
                 type: 'floatatom',
                 nodeClass: 'control',
@@ -163,7 +163,7 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[1], {
+            assert.deepStrictEqual<PdJson.GenericNode>(patch.nodes[1], {
                 id: '1',
                 type: 'msg',
                 nodeClass: 'generic',
@@ -171,7 +171,7 @@ describe('parse', () => {
                 layout: { x: 73, y: 43 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[2], {
+            assert.deepStrictEqual<PdJson.BangNode>(patch.nodes[2], {
                 id: '2',
                 type: 'bng',
                 nodeClass: 'control',
@@ -185,19 +185,19 @@ describe('parse', () => {
                     labelY: 7,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-1',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#000000',
                     hold: 250,
                     interrupt: 50,
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[3], {
+            assert.deepStrictEqual<PdJson.ToggleNode>(patch.nodes[3], {
                 id: '3',
                 type: 'tgl',
                 nodeClass: 'control',
-                args: [1, 'tglSendBla', 'tglRcvBla', 10, 10],
+                args: [10, 1, 10, 'tglSendBla', 'tglRcvBla'],
                 layout: {
                     x: 144,
                     y: 85,
@@ -207,17 +207,17 @@ describe('parse', () => {
                     labelY: 7,
                     labelFont: '0',
                     labelFontSize: 4,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-262144',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#fcfcfc',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[4], {
+            assert.deepStrictEqual<PdJson.NumberBoxNode>(patch.nodes[4], {
                 id: '4',
                 type: 'nbx',
                 nodeClass: 'control',
-                args: [-1e37, 1e37, 1, 'empty', 'empty', 56789],
+                args: [-1e37, 1e37, 1, 56789, 'empty', 'empty'],
                 layout: {
                     x: 180,
                     y: 42,
@@ -229,18 +229,18 @@ describe('parse', () => {
                     labelY: -8,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-1',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#000000',
                     logHeight: '256',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[5], {
+            assert.deepStrictEqual<PdJson.SliderNode>(patch.nodes[5], {
                 id: '5',
                 type: 'hsl',
                 nodeClass: 'control',
-                args: [0, 1270, 1, 'empty', 'empty', 580],
+                args: [0, 1270, 1, 580, 'empty', 'empty'],
                 layout: {
                     x: 242,
                     y: 86,
@@ -252,38 +252,38 @@ describe('parse', () => {
                     labelY: -8,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-1',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#000000',
                     steadyOnClick: '1',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[6], {
+            assert.deepStrictEqual<PdJson.RadioNode>(patch.nodes[6], {
                 id: '6',
                 type: 'vradio',
                 nodeClass: 'control',
-                args: [1, 0, 8, 'empty', 'empty', 0],
+                args: [18, 1, 3, 'empty', 'empty', 1],
                 layout: {
-                    x: 249,
-                    y: 137,
+                    x: 257,
+                    y: 111,
                     size: 15,
                     label: 'empty',
                     labelX: 0,
                     labelY: -8,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-1',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#000000',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[7], {
+            assert.deepStrictEqual<PdJson.VuNode>(patch.nodes[7], {
                 id: '7',
                 type: 'vu',
                 nodeClass: 'control',
-                args: ['empty', 0],
+                args: ['empty', '0'],
                 layout: {
                     x: 89,
                     y: 141,
@@ -294,17 +294,17 @@ describe('parse', () => {
                     labelY: -8,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-66577',
-                    labelColor: '-1',
+                    bgColor: '#404040',
+                    labelColor: '#000000',
                     log: 1,
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[8], {
+            assert.deepStrictEqual<PdJson.CnvNode>(patch.nodes[8], {
                 id: '8',
                 type: 'cnv',
                 nodeClass: 'control',
-                args: ['empty', 'empty', 0],
+                args: ['empty', 'empty', '0'],
                 layout: {
                     x: 317,
                     y: 154,
@@ -316,12 +316,12 @@ describe('parse', () => {
                     labelY: 12,
                     labelFont: '0',
                     labelFontSize: 14,
-                    bgColor: '-233017',
-                    labelColor: '-66577',
+                    bgColor: '#e0e0e0',
+                    labelColor: '#404040',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[9], {
+            assert.deepStrictEqual<PdJson.AtomNode>(patch.nodes[9], {
                 id: '9',
                 type: 'symbolatom',
                 nodeClass: 'control',
@@ -329,11 +329,11 @@ describe('parse', () => {
                 layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '-' },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[10], {
+            assert.deepStrictEqual<PdJson.SliderNode>(patch.nodes[10], {
                 id: '10',
                 type: 'vsl',
                 nodeClass: 'control',
-                args: [0, 12700, 1, 'empty', 'empty', 9500],
+                args: [0, 12700, 1, 9500, 'empty', 'empty'],
                 layout: {
                     x: 458,
                     y: 62,
@@ -345,18 +345,18 @@ describe('parse', () => {
                     labelY: -9,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-1',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#000000',
                     steadyOnClick: '1',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[11], {
+            assert.deepStrictEqual<PdJson.RadioNode>(patch.nodes[11], {
                 id: '11',
                 type: 'hradio',
                 nodeClass: 'control',
-                args: [1, 0, 8, 'empty', 'empty', 0],
+                args: [8, 1, 0, 'empty', 'empty', 0],
                 layout: {
                     x: 69,
                     y: 311,
@@ -366,13 +366,13 @@ describe('parse', () => {
                     labelY: -8,
                     labelFont: '0',
                     labelFontSize: 10,
-                    bgColor: '-262144',
-                    fgColor: '-1',
-                    labelColor: '-1',
+                    bgColor: '#fcfcfc',
+                    fgColor: '#000000',
+                    labelColor: '#000000',
                 },
             })
 
-            assert.deepStrictEqual<PdJson.Node>(patch.nodes[12], {
+            assert.deepStrictEqual<PdJson.GenericNode>(patch.nodes[12], {
                 id: '12',
                 type: 'text',
                 nodeClass: 'generic',
@@ -390,10 +390,6 @@ describe('parse', () => {
                     {
                         source: { nodeId: '2', portletId: 0 },
                         sink: { nodeId: '0', portletId: 0 },
-                    },
-                    {
-                        source: { nodeId: '6', portletId: 0 },
-                        sink: { nodeId: '4', portletId: 0 },
                     },
                 ]
             )
@@ -460,7 +456,7 @@ describe('parse', () => {
                     y: 0,
                     width: 450,
                     height: 300,
-                    openOnLoad: false,
+                    openOnLoad: 0,
                 },
                 args: ['(subpatch)'],
                 nodes: {
@@ -571,7 +567,7 @@ describe('parse', () => {
                     y: 0,
                     width: 450,
                     height: 300,
-                    openOnLoad: false,
+                    openOnLoad: 0,
                 },
                 args: ['(subpatch)'],
                 nodes: {},
@@ -642,7 +638,7 @@ describe('parse', () => {
                     y: 260,
                     width: 450,
                     height: 300,
-                    openOnLoad: true,
+                    openOnLoad: 1,
                 },
                 args: ['mySubpatch'],
                 nodes: {
@@ -704,7 +700,7 @@ describe('parse', () => {
                     y: 260,
                     width: 450,
                     height: 300,
-                    openOnLoad: true,
+                    openOnLoad: 1,
                 },
                 args: ['subSubPatch'],
                 nodes: {

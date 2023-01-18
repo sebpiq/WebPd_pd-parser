@@ -38,15 +38,13 @@ describe('args', () => {
 
     describe('parseBoolArg', () => {
         it('should parse strings correctly', () => {
-            assert.strictEqual(parseBoolArg('0'), false)
-            assert.strictEqual(parseBoolArg('1'), true)
-            assert.strictEqual(parseBoolArg('18'), true)
+            assert.strictEqual(parseBoolArg('0'), 0)
+            assert.strictEqual(parseBoolArg('1'), 1)
         })
 
         it('should parse numbers correctly', () => {
-            assert.strictEqual(parseBoolArg(0), false)
-            assert.strictEqual(parseBoolArg(1), true)
-            assert.strictEqual(parseBoolArg(18), true)
+            assert.strictEqual(parseBoolArg(0), 0)
+            assert.strictEqual(parseBoolArg(1), 1)
         })
 
         it('should throw error for non-number strings', () => {
@@ -55,6 +53,10 @@ describe('args', () => {
 
         it('should throw error if nor a number, nor a string', () => {
             assert.throws(() => parseBoolArg({} as string))
+        })
+
+        it('should throw error for non 0 or 1 numers', () => {
+            assert.throws(() => parseBoolArg('23'))
         })
     })
 
