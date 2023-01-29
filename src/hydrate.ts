@@ -180,14 +180,12 @@ export const hydrateNodeControl = (
             labelPos: parseNumberArg(args[3]),
             label: args[4],
         }
-        // <min> <max> <receive> <send>
         node.args = [
-            parseNumberArg(args[1]), 
-            parseNumberArg(args[2]), 
-            args[5], 
-            args[6]
+            parseNumberArg(args[1]),
+            parseNumberArg(args[2]),
+            args[5],
+            args[6],
         ]
-
     } else if (node.type === 'bng') {
         // <size> <hold> <interrupt> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color>
         node.layout = {
@@ -204,13 +202,7 @@ export const hydrateNodeControl = (
             fgColor: args[12],
             labelColor: args[13],
         }
-        // <init> <send> <receive>
-        node.args = [
-            parseBoolArg(args[3]), 
-            args[4], 
-            args[5]
-        ]
-        
+        node.args = [parseBoolArg(args[3]), args[4], args[5]]
     } else if (node.type === 'tgl') {
         // <size> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <init_value> <default_value>
         node.layout = {
@@ -225,15 +217,13 @@ export const hydrateNodeControl = (
             fgColor: args[10],
             labelColor: args[11],
         }
-        // <on_value> <init> <init_value> <send> <receive>
         node.args = [
             parseNumberArg(args[13]),
-            parseBoolArg(args[1]), 
-            parseNumberArg(args[12]), 
-            args[2], 
+            parseBoolArg(args[1]),
+            parseNumberArg(args[12]),
+            args[2],
             args[3],
         ]
-
     } else if (node.type === 'nbx') {
         // !!! doc is inexact here, logHeight is not at the specified position, and initial value of the nbx was missing.
         // <size> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <log_height>
@@ -252,16 +242,14 @@ export const hydrateNodeControl = (
             labelColor: args[15],
             logHeight: args[17],
         }
-        // <min> <max> <init> <init_value> <send> <receive>
         node.args = [
-            parseNumberArg(args[2]), 
-            parseNumberArg(args[3]), 
-            parseBoolArg(args[5]), 
+            parseNumberArg(args[2]),
+            parseNumberArg(args[3]),
+            parseBoolArg(args[5]),
             parseNumberArg(args[16]),
-            args[6], 
-            args[7], 
+            args[6],
+            args[7],
         ]
-
     } else if (node.type === 'vsl' || node.type === 'hsl') {
         // <width> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value> <steady_on_click>
         node.layout = {
@@ -279,7 +267,6 @@ export const hydrateNodeControl = (
             labelColor: args[15],
             steadyOnClick: args[17],
         }
-        // <min> <max> <init> <init_value> <send> <receive>
         node.args = [
             parseNumberArg(args[2]),
             parseNumberArg(args[3]),
@@ -291,7 +278,6 @@ export const hydrateNodeControl = (
             args[6],
             args[7],
         ]
-
     } else if (node.type === 'vradio' || node.type === 'hradio') {
         // <size> <new_old> <init> <number> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value>
         node.layout = {
@@ -306,16 +292,14 @@ export const hydrateNodeControl = (
             fgColor: args[12],
             labelColor: args[13],
         }
-        // <number> <init> <init_value> <send> <receive> <new_old>
         node.args = [
-            parseNumberArg(args[3]), 
+            parseNumberArg(args[3]),
             parseBoolArg(args[1]),
             parseNumberArg(args[14]),
-            args[4], 
-            args[5], 
+            args[4],
+            args[5],
             parseBoolArg(args[2]),
         ]
-
     } else if (node.type === 'vu') {
         // <width> <height> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <label_color> <scale> <?>
         node.layout = {
@@ -331,9 +315,7 @@ export const hydrateNodeControl = (
             labelColor: args[9],
             log: parseNumberArg(args[10]),
         }
-        // <receive> <?>
         node.args = [args[2], args[11]]
-
     } else if (node.type === 'cnv') {
         // <size> <width> <height> <send> <receive> <label> <x_off> <y_off> <font> <font_size> <bg_color> <label_color> <?>
         node.layout = {
@@ -349,9 +331,7 @@ export const hydrateNodeControl = (
             bgColor: args[10],
             labelColor: args[11],
         }
-        // <send> <receive> <?>
         node.args = [args[3], args[4], args[12]]
-
     } else {
         throw new Error(`Unexpected control node ${node.type}`)
     }
@@ -376,7 +356,7 @@ function hydrateNodeGenericAndControl(
     // I have no idea what's the specification for this, so this is really reverse
     // engineering on what appears in pd files.
     if (lineAfterComma) {
-        const afterCommaTokens = lineAfterComma.split(TOKENS_RE)
+        const afterCommaTokens = lineAfterComma
         while (afterCommaTokens.length) {
             const command = afterCommaTokens.shift()
             if (command === 'f') {

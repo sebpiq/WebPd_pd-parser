@@ -15,11 +15,11 @@ export type Tokens = Array<string>
 
 export interface TokenizedLine {
     tokens: Tokens
-    lineAfterComma: string
+    lineAfterComma?: Tokens
 }
 
 // Regular expression to split tokens in a message.
-export const TOKENS_RE = / |\r\n?|\n/
+export const TOKENS_RE = /(\s*\\,\s*)|(\s*\\;\s*)|\s+|\r\n?|\n/
 export const AFTER_COMMA_RE = /,(?!\\)/
 
 // Regular expression for finding valid lines of Pd in a file
@@ -44,10 +44,40 @@ export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
             .split(AFTER_COMMA_RE)
             .reverse()
             .map(_reverseString)
-        const tokens = lineParts[0].split(TOKENS_RE)
-        const lineAfterComma = lineParts[1]
-        tokenizedLines.push({ tokens, lineAfterComma })
+
+        tokenizedLines.push({
+            tokens: tokenizeLine(lineParts[0]),
+            lineAfterComma: lineParts[1]
+                ? tokenizeLine(lineParts[1])
+                : undefined,
+        })
     }
 
     return tokenizedLines
+}
+
+const tokenizeLine = (line: string): Tokens => {
+    const matches = Array.from(line.matchAll(new RegExp(TOKENS_RE, 'g')))
+    const tokens: Tokens = []
+    matches.forEach((match, i) => {
+        const tokenStart =
+            i === 0 ? 0 : matches[i - 1].index + matches[i - 1][0].length
+        const tokenEnd = match.index
+        const token = line.slice(tokenStart, tokenEnd)
+        if (token.length) {
+            tokens.push(token)
+        }
+
+        if (match[1]) {
+            tokens.push(',')
+        } else if (match[2]) {
+            tokens.push(';')
+        }
+    })
+    const lastMatch = matches.slice(-1)[0]
+    if (lastMatch) {
+        tokens.push(line.slice(lastMatch.index + lastMatch[0].length))
+    }
+
+    return tokens
 }

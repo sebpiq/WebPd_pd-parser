@@ -174,7 +174,7 @@ const parseArrays = (
             // Creates a synthetic node that our parser will hydrate at a later stage
             remainingTokenizedLines.push({
                 tokens: ['ARRAY', currentArray.id],
-                lineAfterComma: '',
+                lineAfterComma: [],
             })
 
             // array data to add to the current array
