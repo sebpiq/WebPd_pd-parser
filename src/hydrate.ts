@@ -11,7 +11,7 @@
 
 import { PdJson } from '@webpd/pd-json'
 import { parseBoolArg, parseNumberArg, parseArg } from './args'
-import { TOKENS_RE, TokenizedLine, Tokens } from './tokenize'
+import { TokenizedLine, Tokens } from './tokenize'
 
 export const hydratePatch = (
     id: PdJson.ObjectGlobalId,

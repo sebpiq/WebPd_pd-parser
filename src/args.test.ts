@@ -22,13 +22,13 @@ import {
 describe('args', () => {
     describe('parseStringArg', () => {
         it('should unescape dollar vars', () => {
-            assert.equal(parseStringArg('\\$15'), '$15')
-            assert.equal(parseStringArg('\\$15-bla-\\$0'), '$15-bla-$0')
+            assert.strictEqual(parseStringArg('\\$15'), '$15')
+            assert.strictEqual(parseStringArg('\\$15-bla-\\$0'), '$15-bla-$0')
         })
 
         it('should unescape comas and semicolons', () => {
-            assert.equal(parseStringArg('\\,bla'), ',bla')
-            assert.equal(parseStringArg('lolo\\;\\,'), 'lolo;,')
+            assert.strictEqual(parseStringArg('\\,bla'), ',bla')
+            assert.strictEqual(parseStringArg('lolo\\;\\,'), 'lolo;,')
         })
 
         it('should throw an error if invalid input', () => {
@@ -72,6 +72,7 @@ describe('args', () => {
 
         it('should throw an error if invalid input', () => {
             assert.throws(() => parseNumberArg('bla'), ValueError)
+            assert.throws(() => parseNumberArg('100)'), ValueError)
             assert.throws(
                 () => parseNumberArg([1] as unknown as number),
                 ValueError
@@ -81,15 +82,15 @@ describe('args', () => {
 
     describe('parseArg', () => {
         it('should parse numbers rightly', () => {
-            assert.equal(parseArg(1), 1)
-            assert.equal(parseArg(0.7e-2), 0.007)
-            assert.equal(parseArg('1'), 1)
-            assert.equal(parseArg('0.7e-2'), 0.007)
+            assert.strictEqual(parseArg(1), 1)
+            assert.strictEqual(parseArg(0.7e-2), 0.007)
+            assert.strictEqual(parseArg('1'), 1)
+            assert.strictEqual(parseArg('0.7e-2'), 0.007)
         })
 
         it('should parse strings rightly', () => {
-            assert.equal(parseArg('bla'), 'bla')
-            assert.equal(parseArg('\\$15'), '$15')
+            assert.strictEqual(parseArg('bla'), 'bla')
+            assert.strictEqual(parseArg('\\$15'), '$15')
         })
 
         it('should raise error with invalid args', () => {

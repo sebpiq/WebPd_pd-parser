@@ -46,7 +46,10 @@ export const parseNumberArg = (val: PdJson.ObjectArg): number => {
     if (isNumber(val)) {
         return val
     } else if (isString(val)) {
-        const parsed = parseFloat(val)
+        // `Number` is better than `parseFloat` for example 
+        // which is too flexible.
+        // REF : https://stackoverflow.com/questions/3257112/is-it-possible-to-parsefloat-the-whole-string
+        const parsed = Number(val)
         if (isNaN(parsed)) {
             throw new ValueError(`Not a valid number arg ${val}`)
         }
