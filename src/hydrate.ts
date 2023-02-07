@@ -14,7 +14,7 @@ import { parseBoolArg, parseNumberArg, parseArg } from './args'
 import { TokenizedLine, Tokens } from './tokenize'
 
 export const hydratePatch = (
-    id: PdJson.ObjectGlobalId,
+    id: PdJson.NodeGlobalId,
     { tokens }: TokenizedLine
 ): PdJson.Patch => {
     const patch: PdJson.Patch = {
@@ -38,7 +38,7 @@ export const hydratePatch = (
 }
 
 export const hydrateArray = (
-    id: PdJson.ObjectGlobalId,
+    id: PdJson.NodeGlobalId,
     { tokens }: TokenizedLine
 ): PdJson.PdArray => {
     const arrayName = tokens[2]
@@ -61,7 +61,7 @@ export const hydrateArray = (
 }
 
 export const hydrateNodePatch = (
-    id: PdJson.ObjectLocalId,
+    id: PdJson.NodeLocalId,
     { tokens }: TokenizedLine
 ): PdJson.SubpatchNode => {
     const canvasType = tokens[4]
@@ -90,7 +90,7 @@ export const hydrateNodePatch = (
 }
 
 export const hydrateNodeArray = (
-    id: PdJson.ObjectLocalId,
+    id: PdJson.NodeLocalId,
     { tokens }: TokenizedLine
 ): PdJson.ArrayNode => ({
     id,
@@ -101,8 +101,8 @@ export const hydrateNodeArray = (
 })
 
 export const hydrateNodeBase = (
-    id: PdJson.ObjectLocalId,
-    { tokens }: TokenizedLine
+    id: PdJson.NodeLocalId,
+    tokens: Tokens
 ): PdJson.BaseNode => {
     const elementType = tokens[1]
     let type // the object name
@@ -150,22 +150,20 @@ export const hydrateConnection = ({
 
 export const hydrateNodeGeneric = (
     nodeBase: PdJson.BaseNode,
-    tokenizedLine: TokenizedLine
 ): PdJson.GenericNode => {
     const node: PdJson.GenericNode = {
         ...nodeBase,
         nodeClass: 'generic',
     }
     node.args = node.args.map(parseArg)
-    return hydrateNodeGenericAndControl(node, tokenizedLine)
+    return node
 }
 
 // This is put here just for readability of the main `parse` function
 export const hydrateNodeControl = (
     nodeBase: PdJson.BaseNode,
-    tokenizedLine: TokenizedLine,
-    args: Tokens
 ): PdJson.ControlNode => {
+    const args = nodeBase.args as Tokens
     const node: PdJson.ControlNode = {
         ...nodeBase,
         type: nodeBase.type as PdJson.ControlNode['type'],
@@ -267,14 +265,28 @@ export const hydrateNodeControl = (
             labelColor: args[15],
             steadyOnClick: args[17],
         }
+
+        const minValue = parseNumberArg(args[2])
+        const maxValue = parseNumberArg(args[3])
+        const isLogScale = parseBoolArg(args[4])
+        const pixValue = parseNumberArg(args[16])
+        const pixSize = (node.type === 'hsl' ? node.layout.width : node.layout.height)
+
+        let initValue: number = 0
+        if (isLogScale) {
+            const k = Math.log(maxValue / minValue) / (pixSize - 1)
+            initValue = minValue * Math.exp(k * pixValue * 0.01)
+        } else {
+            // Reversed engineered formula for the initial value.
+            initValue = minValue +
+                (maxValue - minValue) * pixValue / ((pixSize - 1) * 100)
+        }
+
         node.args = [
-            parseNumberArg(args[2]),
-            parseNumberArg(args[3]),
+            minValue,
+            maxValue,
             parseBoolArg(args[5]),
-            parseNumberArg(args[2]) +
-                ((parseNumberArg(args[3]) - parseNumberArg(args[2])) *
-                    parseNumberArg(args[16])) /
-                    12700,
+            initValue,
             args[6],
             args[7],
         ]
@@ -335,22 +347,22 @@ export const hydrateNodeControl = (
     } else {
         throw new Error(`Unexpected control node ${node.type}`)
     }
-    return hydrateNodeGenericAndControl(node, tokenizedLine)
+    return node
 }
 
-function hydrateNodeGenericAndControl(
+export function hydrateLineAfterComma(
     node: PdJson.GenericNode,
-    { lineAfterComma }: TokenizedLine
+    lineAfterComma: Tokens
 ): PdJson.GenericNode
 
-function hydrateNodeGenericAndControl(
+export function hydrateLineAfterComma(
     node: PdJson.ControlNode,
-    { lineAfterComma }: TokenizedLine
+    lineAfterComma: Tokens
 ): PdJson.ControlNode
 
-function hydrateNodeGenericAndControl(
+export function hydrateLineAfterComma(
     node: PdJson.ControlNode | PdJson.GenericNode,
-    { lineAfterComma }: TokenizedLine
+    lineAfterComma?: Tokens
 ): PdJson.ControlNode | PdJson.GenericNode {
     // Handling stuff after the comma
     // I have no idea what's the specification for this, so this is really reverse

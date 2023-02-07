@@ -240,11 +240,11 @@ describe('parse', () => {
                 id: '5',
                 type: 'hsl',
                 nodeClass: 'control',
-                args: [0, 1270, 1, 580, 'empty', 'empty'],
+                args: [0, 1800, 1, 585, 'empty', 'empty'],
                 layout: {
                     x: 242,
                     y: 86,
-                    width: 128,
+                    width: 201,
                     height: 15,
                     log: 0,
                     label: 'empty',

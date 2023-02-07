@@ -19,7 +19,7 @@ const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\;/g
 // Parses argument to a string or a number.
 // Needs to handle the case when the argument is already a number as in the process of gathering
 // arguments we sometimes insert a number.
-export const parseArg = (rawArg: PdJson.ObjectArg): PdJson.ObjectArg => {
+export const parseArg = (rawArg: PdJson.NodeArg): PdJson.NodeArg => {
     // Try to parse arg as a number
     try {
         return parseNumberArg(rawArg)
@@ -42,7 +42,7 @@ export const parseArg = (rawArg: PdJson.ObjectArg): PdJson.ObjectArg => {
 }
 
 // Parses a float from a .pd file. Returns the parsed float or throws ValueError.
-export const parseNumberArg = (val: PdJson.ObjectArg): number => {
+export const parseNumberArg = (val: PdJson.NodeArg): number => {
     if (isNumber(val)) {
         return val
     } else if (isString(val)) {
@@ -60,7 +60,7 @@ export const parseNumberArg = (val: PdJson.ObjectArg): number => {
 }
 
 // Parses a '0' or '1' from a .pd file.
-export const parseBoolArg = (val: PdJson.ObjectArg): 0 | 1 => {
+export const parseBoolArg = (val: PdJson.NodeArg): 0 | 1 => {
     const parsed = parseNumberArg(val)
     if (parsed === 0 || parsed === 1) {
         return parsed
@@ -69,7 +69,7 @@ export const parseBoolArg = (val: PdJson.ObjectArg): 0 | 1 => {
 }
 
 // Apply some operations to a string arg
-export const parseStringArg = (val: PdJson.ObjectArg): string => {
+export const parseStringArg = (val: PdJson.NodeArg): string => {
     if (!isString(val)) {
         throw new ValueError(`Not a valid string arg ${val}`)
     }

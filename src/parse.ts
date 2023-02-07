@@ -17,6 +17,7 @@ import {
     hydrateNodeBase,
     hydrateNodeControl,
     hydrateNodeGeneric,
+    hydrateLineAfterComma,
     hydrateNodePatch,
     hydratePatch,
 } from './hydrate'
@@ -232,15 +233,13 @@ const parseNodesAndConnections = (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
             const tokenizedLine = tokenizedLines.shift()
-            const nodeBase = hydrateNodeBase(nextId(), tokenizedLine)
+            const nodeBase = hydrateNodeBase(nextId(), tokenizedLine.tokens)
             if (Object.keys(CONTROL_TYPE).includes(nodeBase.type)) {
-                node = hydrateNodeControl(
-                    nodeBase,
-                    tokenizedLine,
-                    nodeBase.args as Tokens
-                )
+                node = hydrateNodeControl(nodeBase)
+                node = hydrateLineAfterComma(node, tokenizedLine.lineAfterComma)
             } else {
-                node = hydrateNodeGeneric(nodeBase, tokenizedLine)
+                node = hydrateNodeGeneric(nodeBase)
+                node = hydrateLineAfterComma(node, tokenizedLine.lineAfterComma)
             }
         }
 
