@@ -69,9 +69,14 @@ export const parseBoolArg = (val: PdJson.NodeArg): 0 | 1 => {
 }
 
 // Apply some operations to a string arg
-export const parseStringArg = (val: PdJson.NodeArg): string => {
+export const parseStringArg = (val: PdJson.NodeArg, emptyValue: string = null): string => {
     if (!isString(val)) {
         throw new ValueError(`Not a valid string arg ${val}`)
+    }
+
+    // If empty value, make real empty string
+    if (emptyValue !== null && val === emptyValue) {
+        return ''
     }
 
     // Unescape special characters

@@ -31,6 +31,10 @@ describe('args', () => {
             assert.strictEqual(parseStringArg('lolo\\;\\,'), 'lolo;,')
         })
 
+        it('should return empty string if empty value', () => {
+            assert.strictEqual(parseStringArg('empty', 'empty'), '')
+        })
+
         it('should throw an error if invalid input', () => {
             assert.throws(() => parseStringArg(null), ValueError)
         })

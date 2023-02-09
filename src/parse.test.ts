@@ -48,16 +48,16 @@ describe('parse', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
             const emptyPd: PdJson.Pd = { patches: {}, arrays: {} }
             const [pd, remainingTokenizedLines, patchesTokenizedLines] =
-                parsePatches(emptyPd, tokenizedLines)
+                parsePatches(emptyPd, tokenizedLines, {})
             assert.deepStrictEqual(remainingTokenizedLines, [])
             assert.strictEqual(Object.keys(patchesTokenizedLines).length, 3)
 
             // root patch
-            assert.deepStrictEqual(pd.patches[0].layout, {
-                x: 340,
-                y: 223,
-                width: 450,
-                height: 300,
+            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[0].layout, {
+                windowX: 340,
+                windowY: 223,
+                windowWidth: 450,
+                windowHeight: 300,
             })
             assert.deepStrictEqual(pd.patches[0].args, ['10'])
             assertTokenizedLinesEqual(patchesTokenizedLines[0], [
@@ -70,14 +70,14 @@ describe('parse', () => {
             ])
 
             // subpatch
-            assert.deepStrictEqual(pd.patches[1].layout, {
-                x: 447,
-                y: 260,
-                width: 450,
-                height: 300,
+            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[1].layout, {
                 openOnLoad: 1,
+                windowX: 1072,
+                windowY: 311,
+                windowWidth: 450,
+                windowHeight: 300,
             })
-            assert.deepStrictEqual(pd.patches[1].args, ['mySubpatch'])
+            assert.deepStrictEqual(pd.patches[1].args, ['subPatch'])
             assertTokenizedLinesEqual(patchesTokenizedLines[1], [
                 ['#X', 'obj', '46', '39', 'inlet~'],
                 ['#X', 'obj', '47', '83', 'delwrite~', 'myDel'],
@@ -89,12 +89,18 @@ describe('parse', () => {
             ])
             ;('1')
             // sub-subpatch
-            assert.deepStrictEqual(pd.patches[2].layout, {
-                x: 842,
-                y: 260,
-                width: 450,
-                height: 300,
+            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[2].layout, {
                 openOnLoad: 1,
+                hideObjectNameAndArguments: 1,
+                windowX: 842,
+                windowY: 260,
+                windowWidth: 450,
+                windowHeight: 300,
+                graphOnParent: 1,
+                viewportX: 60,
+                viewportY: 30,
+                viewportWidth: 85,
+                viewportHeight: 60,
             })
             assert.deepStrictEqual(pd.patches[2].args, ['subSubPatch'])
             assertTokenizedLinesEqual(patchesTokenizedLines[2], [
@@ -114,7 +120,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { x: 778, y: 17, width: 450, height: 300 },
+                layout: { windowX: 778, windowY: 17, windowWidth: 450, windowHeight: 300 },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -153,13 +159,13 @@ describe('parse', () => {
                 id: '0',
                 type: 'floatatom',
                 nodeClass: 'control',
-                args: [0, 0, '-', '-'],
+                args: [0, 0, '', ''],
                 layout: {
                     x: 73,
                     y: 84,
                     width: 5,
                     labelPos: 0,
-                    label: '-',
+                    label: '',
                 },
             })
 
@@ -175,12 +181,12 @@ describe('parse', () => {
                 id: '2',
                 type: 'bng',
                 nodeClass: 'control',
-                args: [0, 'empty', 'empty'],
+                args: [0, '', ''],
                 layout: {
                     size: 15,
                     x: 142,
                     y: 42,
-                    label: 'empty',
+                    label: '',
                     labelX: 17,
                     labelY: 7,
                     labelFont: '0',
@@ -202,7 +208,7 @@ describe('parse', () => {
                     x: 144,
                     y: 85,
                     size: 15,
-                    label: 'empty',
+                    label: '',
                     labelX: 17,
                     labelY: 7,
                     labelFont: '0',
@@ -217,14 +223,14 @@ describe('parse', () => {
                 id: '4',
                 type: 'nbx',
                 nodeClass: 'control',
-                args: [-1e37, 1e37, 1, 56789, 'empty', 'empty'],
+                args: [-1e37, 1e37, 1, 56789, '', ''],
                 layout: {
                     x: 180,
                     y: 42,
-                    size: 5,
+                    widthDigits: 5,
                     height: 14,
                     log: 0,
-                    label: 'empty',
+                    label: '',
                     labelX: 0,
                     labelY: -8,
                     labelFont: '0',
@@ -240,14 +246,14 @@ describe('parse', () => {
                 id: '5',
                 type: 'hsl',
                 nodeClass: 'control',
-                args: [0, 1800, 1, 585, 'empty', 'empty'],
+                args: [0, 1800, 1, 585, '', ''],
                 layout: {
                     x: 242,
                     y: 86,
                     width: 201,
                     height: 15,
                     log: 0,
-                    label: 'empty',
+                    label: '',
                     labelX: -2,
                     labelY: -8,
                     labelFont: '0',
@@ -263,12 +269,12 @@ describe('parse', () => {
                 id: '6',
                 type: 'vradio',
                 nodeClass: 'control',
-                args: [18, 1, 3, 'empty', 'empty', 1],
+                args: [18, 1, 3, '', '', 1],
                 layout: {
                     x: 257,
                     y: 111,
                     size: 15,
-                    label: 'empty',
+                    label: '',
                     labelX: 0,
                     labelY: -8,
                     labelFont: '0',
@@ -283,13 +289,13 @@ describe('parse', () => {
                 id: '7',
                 type: 'vu',
                 nodeClass: 'control',
-                args: ['empty', '0'],
+                args: ['', '0'],
                 layout: {
                     x: 89,
                     y: 141,
                     width: 15,
                     height: 120,
-                    label: 'empty',
+                    label: '',
                     labelX: -1,
                     labelY: -8,
                     labelFont: '0',
@@ -304,14 +310,14 @@ describe('parse', () => {
                 id: '8',
                 type: 'cnv',
                 nodeClass: 'control',
-                args: ['empty', 'empty', '0'],
+                args: ['', '', '0'],
                 layout: {
                     x: 317,
                     y: 154,
                     size: 15,
                     width: 100,
                     height: 60,
-                    label: 'empty',
+                    label: '',
                     labelX: 20,
                     labelY: 12,
                     labelFont: '0',
@@ -325,22 +331,22 @@ describe('parse', () => {
                 id: '9',
                 type: 'symbolatom',
                 nodeClass: 'control',
-                args: [0, 0, '-', '-'],
-                layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '-' },
+                args: [0, 0, '', ''],
+                layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '' },
             })
 
             assert.deepStrictEqual<PdJson.SliderNode>(patch.nodes[10], {
                 id: '10',
                 type: 'vsl',
                 nodeClass: 'control',
-                args: [0, 12700, 1, 9500, 'empty', 'empty'],
+                args: [0, 12700, 1, 9500, '', ''],
                 layout: {
                     x: 458,
                     y: 62,
                     width: 15,
                     height: 128,
                     log: 0,
-                    label: 'empty',
+                    label: '',
                     labelX: 0,
                     labelY: -9,
                     labelFont: '0',
@@ -356,12 +362,12 @@ describe('parse', () => {
                 id: '11',
                 type: 'hradio',
                 nodeClass: 'control',
-                args: [8, 1, 0, 'empty', 'empty', 0],
+                args: [8, 1, 0, '', '', 0],
                 layout: {
                     x: 69,
                     y: 311,
                     size: 15,
-                    label: 'empty',
+                    label: '',
                     labelX: 0,
                     labelY: -8,
                     labelFont: '0',
@@ -416,7 +422,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { x: 667, y: 72, width: 681, height: 545 },
+                layout: { windowX: 667, windowY: 72, windowWidth: 681, windowHeight: 545 },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -452,11 +458,17 @@ describe('parse', () => {
             assert.deepStrictEqual<PdJson.Patch>(arraySubpatch, {
                 id: '1',
                 layout: {
-                    x: 0,
-                    y: 0,
-                    width: 450,
-                    height: 300,
                     openOnLoad: 0,
+                    windowX: 0,
+                    windowY: 0,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                    graphOnParent: 1,
+                    hideObjectNameAndArguments: 0,
+                    viewportX: 0,
+                    viewportY: 0,
+                    viewportWidth: 200,
+                    viewportHeight: 140,
                 },
                 args: ['(subpatch)'],
                 nodes: {
@@ -543,7 +555,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { x: 49, y: 82, width: 450, height: 300 },
+                layout: { windowX: 49, windowY: 82, windowWidth: 450, windowHeight: 300 },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -563,11 +575,17 @@ describe('parse', () => {
             assert.deepStrictEqual<PdJson.Patch>(graphSubpatch, {
                 id: '1',
                 layout: {
-                    x: 0,
-                    y: 0,
-                    width: 450,
-                    height: 300,
                     openOnLoad: 0,
+                    windowX: 0,
+                    windowY: 0,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                    graphOnParent: 1,
+                    hideObjectNameAndArguments: 0,
+                    viewportX: 0,
+                    viewportY: 0,
+                    viewportWidth: 200,
+                    viewportHeight: 140,
                 },
                 args: ['(subpatch)'],
                 nodes: {},
@@ -587,7 +605,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { x: 340, y: 223, width: 450, height: 300 },
+                layout: { windowX: 340, windowY: 223, windowWidth: 450, windowHeight: 300 },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -634,13 +652,13 @@ describe('parse', () => {
             assert.deepStrictEqual<PdJson.Patch>(subpatch1, {
                 id: '1',
                 layout: {
-                    x: 447,
-                    y: 260,
-                    width: 450,
-                    height: 300,
                     openOnLoad: 1,
+                    windowX: 1072,
+                    windowY: 311,
+                    windowWidth: 450,
+                    windowHeight: 300,
                 },
-                args: ['mySubpatch'],
+                args: ['subPatch'],
                 nodes: {
                     '0': {
                         id: '0',
@@ -696,11 +714,17 @@ describe('parse', () => {
             assert.deepStrictEqual<PdJson.Patch>(subpatch2, {
                 id: '2',
                 layout: {
-                    x: 842,
-                    y: 260,
-                    width: 450,
-                    height: 300,
                     openOnLoad: 1,
+                    windowX: 842,
+                    windowY: 260,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                    graphOnParent: 1,
+                    hideObjectNameAndArguments: 1,
+                    viewportX: 60,
+                    viewportY: 30,
+                    viewportWidth: 85,
+                    viewportHeight: 60,
                 },
                 args: ['subSubPatch'],
                 nodes: {
@@ -736,8 +760,8 @@ describe('parse', () => {
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
 
-            assert.strictEqual(patch.nodes[0].layout.width, 30)
-            assert.strictEqual(patch.nodes[1].layout.width, 40)
+            assert.strictEqual((patch.nodes[0].layout as PdJson.BaseNode['layout']).width, 30)
+            assert.strictEqual((patch.nodes[1].layout as PdJson.BaseNode['layout']).width, 40)
         })
 
         it('should add inlets and outlets in layout order', () => {

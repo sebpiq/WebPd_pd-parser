@@ -23,6 +23,8 @@ import {
 } from './hydrate'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
 
+type PatchTokenizedLinesMap = { [globalId: string]: Array<TokenizedLine> }
+
 export const nextPatchId = (): string => `${++nextPatchId.counter}`
 nextPatchId.counter = -1
 
@@ -34,16 +36,20 @@ const NODES = ['obj', 'floatatom', 'symbolatom', 'msg', 'text']
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
 
-// Parses a Pd file, returns a simplified JSON version
+/** Parses a Pd file, returns a simplified JSON version */
 export default (pdString: PdJson.PdString): PdJson.Pd => {
     let pd: PdJson.Pd = {
         patches: {},
         arrays: {},
     }
-    const tokenizedLines = tokenize(pdString)
-    const parsePatchesResult = parsePatches(pd, tokenizedLines)
-    const patchTokenizedLinesMap = parsePatchesResult[2]
-    pd = parsePatchesResult[0]
+    let tokenizedLines = tokenize(pdString)
+    let patchTokenizedLinesMap: PatchTokenizedLinesMap = {}
+    ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
+        pd,
+        tokenizedLines,
+        patchTokenizedLinesMap
+    )
+
     Object.values(pd.patches).forEach((patch) => {
         let patchTokenizedLines = patchTokenizedLinesMap[patch.id]
         ;[pd, patchTokenizedLines] = parseArrays(pd, patchTokenizedLines)
@@ -65,7 +71,7 @@ export default (pdString: PdJson.PdString): PdJson.Pd => {
 export const parsePatches = (
     pd: PdJson.Pd,
     tokenizedLines: Array<TokenizedLine>,
-    patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> } = {}
+    patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> }
 ): [
     PdJson.Pd,
     Array<TokenizedLine>,
@@ -77,7 +83,10 @@ export const parsePatches = (
     }
     tokenizedLines = [...tokenizedLines]
     patchTokenizedLinesMap = { ...patchTokenizedLinesMap }
-    let currentPatch: PdJson.Patch | null = null
+    const patchId = nextPatchId()
+    const patchTokenizedLines = []
+    let patchCanvasTokens: TokenizedLine
+    let patchCoordsTokens: TokenizedLine = { tokens: [] }
     let lineIndex = -1
 
     while (tokenizedLines.length) {
@@ -86,9 +95,7 @@ export const parsePatches = (
 
         // First line of the patch / subpatch, initializes the patch
         if (_tokensMatch(tokens, '#N', 'canvas') && lineIndex === 0) {
-            currentPatch = hydratePatch(nextPatchId(), tokenizedLines.shift())
-            pd.patches[currentPatch.id] = currentPatch
-            patchTokenizedLinesMap[currentPatch.id] = []
+            patchCanvasTokens = tokenizedLines.shift()
 
             // If not first line, starts a subpatch
         } else if (_tokensMatch(tokens, '#N', 'canvas')) {
@@ -98,25 +105,40 @@ export const parsePatches = (
                 patchTokenizedLinesMap
             )
 
+            // coords : visual range of framesets
+        } else if (_tokensMatch(tokens, '#X', 'coords')) {
+            patchCoordsTokens = tokenizedLines.shift()
+
             // Restore : ends a canvas definition
         } else if (_tokensMatch(tokens, '#X', 'restore')) {
             // Creates a synthetic node that our parser will hydrate at a later stage
             tokenizedLines[0].tokens = [
                 'PATCH',
-                currentPatch.id,
+                patchId,
                 ...tokenizedLines[0].tokens.slice(2),
             ]
-            return [pd, tokenizedLines, patchTokenizedLinesMap]
+            break
 
             // A normal chunk to add to the current patch
         } else {
-            patchTokenizedLinesMap[currentPatch.id].push(tokenizedLines.shift())
+            patchTokenizedLines.push(tokenizedLines.shift())
         }
     }
+
+    pd.patches[patchId] = hydratePatch(
+        patchId,
+        patchCanvasTokens,
+        patchCoordsTokens,
+    )
+    patchTokenizedLinesMap[patchId] = patchTokenizedLines
 
     return [pd, tokenizedLines, patchTokenizedLinesMap]
 }
 
+/**
+ * Use the layout of [inlet] / [outlet] objects to compute the order
+ * of portlets of a subpatch.
+ */
 const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
     const _comparePortletsId = (
         node1: PdJson.Node,
@@ -250,10 +272,6 @@ const parseNodesAndConnections = (
 
         if (_tokensMatch(tokens, '#X', 'connect')) {
             patch.connections.push(hydrateConnection(tokenizedLines.shift()))
-
-            // coords : visual range of framsets
-        } else if (_tokensMatch(tokens, '#X', 'coords')) {
-            tokenizedLines.shift()
         } else {
             remainingTokenizedLines.push(tokenizedLines.shift())
         }
