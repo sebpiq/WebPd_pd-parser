@@ -10,6 +10,7 @@
  */
 
 import { CONTROL_TYPE, PdJson } from '@webpd/pd-json'
+import { parseFloatToken } from './tokens'
 import {
     hydrateArray,
     hydrateConnection,
@@ -51,13 +52,13 @@ export default (pdString: PdJson.PdString): PdJson.Pd => {
     )
 
     Object.values(pd.patches).forEach((patch) => {
-        let patchTokenizedLines = patchTokenizedLinesMap[patch.id]
+        let patchTokenizedLines = patchTokenizedLinesMap[patch.id]!
         ;[pd, patchTokenizedLines] = parseArrays(pd, patchTokenizedLines)
         ;[patch, patchTokenizedLines] = parseNodesAndConnections(
             patch,
             patchTokenizedLines
         )
-        patch = computePatchPortlets(patch)
+        patch = _computePatchPortlets(patch)
         if (patchTokenizedLines.length) {
             throw new Error(
                 `invalid chunks : ${patchTokenizedLines.map((l) => l.tokens)}`
@@ -85,17 +86,17 @@ export const parsePatches = (
     patchTokenizedLinesMap = { ...patchTokenizedLinesMap }
     const patchId = nextPatchId()
     const patchTokenizedLines = []
-    let patchCanvasTokens: TokenizedLine
+    let patchCanvasTokens: TokenizedLine = { tokens: [] }
     let patchCoordsTokens: TokenizedLine = { tokens: [] }
     let lineIndex = -1
 
     while (tokenizedLines.length) {
-        const { tokens } = tokenizedLines[0]
+        const { tokens } = tokenizedLines[0]!
         lineIndex++
 
         // First line of the patch / subpatch, initializes the patch
         if (_tokensMatch(tokens, '#N', 'canvas') && lineIndex === 0) {
-            patchCanvasTokens = tokenizedLines.shift()
+            patchCanvasTokens = tokenizedLines.shift()!
 
             // If not first line, starts a subpatch
         } else if (_tokensMatch(tokens, '#N', 'canvas')) {
@@ -107,21 +108,21 @@ export const parsePatches = (
 
             // coords : visual range of framesets
         } else if (_tokensMatch(tokens, '#X', 'coords')) {
-            patchCoordsTokens = tokenizedLines.shift()
+            patchCoordsTokens = tokenizedLines.shift()!
 
             // Restore : ends a canvas definition
         } else if (_tokensMatch(tokens, '#X', 'restore')) {
             // Creates a synthetic node that our parser will hydrate at a later stage
-            tokenizedLines[0].tokens = [
+            tokenizedLines[0]!.tokens = [
                 'PATCH',
                 patchId,
-                ...tokenizedLines[0].tokens.slice(2),
+                ...tokenizedLines[0]!.tokens.slice(2),
             ]
             break
 
             // A normal chunk to add to the current patch
         } else {
-            patchTokenizedLines.push(tokenizedLines.shift())
+            patchTokenizedLines.push(tokenizedLines.shift()!)
         }
     }
 
@@ -139,7 +140,7 @@ export const parsePatches = (
  * Use the layout of [inlet] / [outlet] objects to compute the order
  * of portlets of a subpatch.
  */
-const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
+const _computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
     const _comparePortletsId = (
         node1: PdJson.Node,
         node2: PdJson.Node
@@ -147,7 +148,7 @@ const computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
     const _comparePortletsLayout = (
         node1: PdJson.Node,
         node2: PdJson.Node
-    ): number => node1.layout.x - node2.layout.x
+    ): number => node1.layout!.x! - node2.layout!.x!
 
     const inletNodes = Object.values(patch.nodes).filter((node) =>
         ['inlet', 'inlet~'].includes(node.type)
@@ -188,11 +189,11 @@ const parseArrays = (
     let currentArray: PdJson.PdArray | null = null
 
     while (tokenizedLines.length) {
-        const { tokens } = tokenizedLines[0]
+        const { tokens } = tokenizedLines[0]!
 
         // start of an array definition
         if (_tokensMatch(tokens, '#X', 'array')) {
-            currentArray = hydrateArray(nextArrayId(), tokenizedLines.shift())
+            currentArray = hydrateArray(nextArrayId(), tokenizedLines.shift()!)
             pd.arrays[currentArray.id] = currentArray
             // Creates a synthetic node that our parser will hydrate at a later stage
             remainingTokenizedLines.push({
@@ -205,21 +206,25 @@ const parseArrays = (
             if (!currentArray) {
                 throw new Error('got array data outside of a array.')
             }
+            const currentData = currentArray.data
+            if (currentData === null) {
+                throw new Error('got array data for an array that doesn\'t save contents.')
+            }
 
             // reads in part of an array of data, starting at the index specified in this line
             // name of the array comes from the the '#X array' and '#X restore' matches above
-            const indexOffset = parseFloat(tokens[1])
+            const indexOffset = parseFloatToken(tokens[1])
             tokens.slice(2).forEach((rawVal, i) => {
-                const val = parseFloat(rawVal)
+                const val = parseFloatToken(rawVal)
                 if (Number.isFinite(val)) {
-                    currentArray.data[indexOffset + i] = val
+                    currentData[indexOffset + i] = val
                 }
             })
             tokenizedLines.shift()
 
             // A normal chunk to add to the current patch
         } else {
-            remainingTokenizedLines.push(tokenizedLines.shift())
+            remainingTokenizedLines.push(tokenizedLines.shift()!)
         }
     }
 
@@ -231,9 +236,9 @@ const parseNodesAndConnections = (
     tokenizedLines: Array<TokenizedLine>
 ): [PdJson.Patch, Array<TokenizedLine>] => {
     patch = {
+        ...patch,
         nodes: { ...patch.nodes },
         connections: [...patch.connections],
-        ...patch,
     }
     tokenizedLines = [...tokenizedLines]
     const remainingTokenizedLines: Array<TokenizedLine> = []
@@ -244,17 +249,17 @@ const parseNodesAndConnections = (
     const nextId = (): string => `${++idCounter}`
 
     while (tokenizedLines.length) {
-        const { tokens } = tokenizedLines[0]
+        const { tokens } = tokenizedLines[0]!
 
-        let node: PdJson.Node
+        let node: PdJson.Node | null = null
         if (_tokensMatch(tokens, 'PATCH')) {
-            node = hydrateNodePatch(nextId(), tokenizedLines.shift())
+            node = hydrateNodePatch(nextId(), tokenizedLines.shift()!)
         } else if (_tokensMatch(tokens, 'ARRAY')) {
-            node = hydrateNodeArray(nextId(), tokenizedLines.shift())
+            node = hydrateNodeArray(nextId(), tokenizedLines.shift()!)
         } else if (
             NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
         ) {
-            const tokenizedLine = tokenizedLines.shift()
+            const tokenizedLine = tokenizedLines.shift()!
             const nodeBase = hydrateNodeBase(nextId(), tokenizedLine.tokens)
             if (Object.keys(CONTROL_TYPE).includes(nodeBase.type)) {
                 node = hydrateNodeControl(nodeBase)
@@ -271,9 +276,9 @@ const parseNodesAndConnections = (
         }
 
         if (_tokensMatch(tokens, '#X', 'connect')) {
-            patch.connections.push(hydrateConnection(tokenizedLines.shift()))
+            patch.connections.push(hydrateConnection(tokenizedLines.shift()!))
         } else {
-            remainingTokenizedLines.push(tokenizedLines.shift())
+            remainingTokenizedLines.push(tokenizedLines.shift()!)
         }
     }
 

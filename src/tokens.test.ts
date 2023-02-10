@@ -12,73 +12,73 @@
 import { PdJson } from '@webpd/pd-json'
 import assert from 'assert'
 import {
-    parseBoolArg,
-    parseNumberArg,
+    parseBoolToken,
+    parseFloatToken,
     parseArg,
-    parseStringArg,
+    parseStringToken,
     ValueError,
-} from './args'
+} from './tokens'
 
-describe('args', () => {
-    describe('parseStringArg', () => {
+describe('tokens', () => {
+    describe('parseStringToken', () => {
         it('should unescape dollar vars', () => {
-            assert.strictEqual(parseStringArg('\\$15'), '$15')
-            assert.strictEqual(parseStringArg('\\$15-bla-\\$0'), '$15-bla-$0')
+            assert.strictEqual(parseStringToken('\\$15'), '$15')
+            assert.strictEqual(parseStringToken('\\$15-bla-\\$0'), '$15-bla-$0')
         })
 
         it('should unescape comas and semicolons', () => {
-            assert.strictEqual(parseStringArg('\\,bla'), ',bla')
-            assert.strictEqual(parseStringArg('lolo\\;\\,'), 'lolo;,')
+            assert.strictEqual(parseStringToken('\\,bla'), ',bla')
+            assert.strictEqual(parseStringToken('lolo\\;\\,'), 'lolo;,')
         })
 
         it('should return empty string if empty value', () => {
-            assert.strictEqual(parseStringArg('empty', 'empty'), '')
+            assert.strictEqual(parseStringToken('empty', 'empty'), '')
         })
 
         it('should throw an error if invalid input', () => {
-            assert.throws(() => parseStringArg(null), ValueError)
+            assert.throws(() => parseStringToken(undefined), ValueError)
         })
     })
 
-    describe('parseBoolArg', () => {
+    describe('parseBoolToken', () => {
         it('should parse strings correctly', () => {
-            assert.strictEqual(parseBoolArg('0'), 0)
-            assert.strictEqual(parseBoolArg('1'), 1)
+            assert.strictEqual(parseBoolToken('0'), 0)
+            assert.strictEqual(parseBoolToken('1'), 1)
         })
 
         it('should parse numbers correctly', () => {
-            assert.strictEqual(parseBoolArg(0), 0)
-            assert.strictEqual(parseBoolArg(1), 1)
+            assert.strictEqual(parseBoolToken(0), 0)
+            assert.strictEqual(parseBoolToken(1), 1)
         })
 
         it('should throw error for non-number strings', () => {
-            assert.throws(() => parseBoolArg('AAaarg'))
+            assert.throws(() => parseBoolToken('AAaarg'))
         })
 
         it('should throw error if nor a number, nor a string', () => {
-            assert.throws(() => parseBoolArg({} as string))
+            assert.throws(() => parseBoolToken({} as string))
         })
 
         it('should throw error for non 0 or 1 numers', () => {
-            assert.throws(() => parseBoolArg('23'))
+            assert.throws(() => parseBoolToken('23'))
         })
     })
 
-    describe('parseNumberArg', () => {
+    describe('parseFloatToken', () => {
         it('should parse floats rightly', () => {
-            assert.strictEqual(parseNumberArg('789.9'), 789.9)
-            assert.strictEqual(parseNumberArg('0'), 0)
-            assert.strictEqual(parseNumberArg('0.'), 0)
-            assert.strictEqual(parseNumberArg('-0.9'), -0.9)
-            assert.strictEqual(parseNumberArg('-4e-2'), -0.04)
-            assert.strictEqual(parseNumberArg('0.558e2'), 55.8)
+            assert.strictEqual(parseFloatToken('789.9'), 789.9)
+            assert.strictEqual(parseFloatToken('0'), 0)
+            assert.strictEqual(parseFloatToken('0.'), 0)
+            assert.strictEqual(parseFloatToken('-0.9'), -0.9)
+            assert.strictEqual(parseFloatToken('-4e-2'), -0.04)
+            assert.strictEqual(parseFloatToken('0.558e2'), 55.8)
         })
 
         it('should throw an error if invalid input', () => {
-            assert.throws(() => parseNumberArg('bla'), ValueError)
-            assert.throws(() => parseNumberArg('100)'), ValueError)
+            assert.throws(() => parseFloatToken('bla'), ValueError)
+            assert.throws(() => parseFloatToken('100)'), ValueError)
             assert.throws(
-                () => parseNumberArg([1] as unknown as number),
+                () => parseFloatToken([1] as unknown as number),
                 ValueError
             )
         })
@@ -102,7 +102,7 @@ describe('args', () => {
                 parseArg([1, 2] as unknown as PdJson.NodeArg)
             })
             assert.throws(() => {
-                parseArg(null)
+                parseArg(undefined)
             })
         })
     })

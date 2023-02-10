@@ -53,14 +53,14 @@ describe('parse', () => {
             assert.strictEqual(Object.keys(patchesTokenizedLines).length, 3)
 
             // root patch
-            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[0].layout, {
+            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[0]!.layout, {
                 windowX: 340,
                 windowY: 223,
                 windowWidth: 450,
                 windowHeight: 300,
             })
-            assert.deepStrictEqual(pd.patches[0].args, ['10'])
-            assertTokenizedLinesEqual(patchesTokenizedLines[0], [
+            assert.deepStrictEqual(pd.patches[0]!.args, ['10'])
+            assertTokenizedLinesEqual(patchesTokenizedLines[0]!, [
                 ['#X', 'obj', '78', '81', 'osc~'],
                 ['PATCH', '1', '79', '117', 'pd', 'subPatch'],
                 ['#X', 'obj', '80', '175', 'dac~'],
@@ -70,15 +70,15 @@ describe('parse', () => {
             ])
 
             // subpatch
-            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[1].layout, {
+            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[1]!.layout, {
                 openOnLoad: 1,
                 windowX: 1072,
                 windowY: 311,
                 windowWidth: 450,
                 windowHeight: 300,
             })
-            assert.deepStrictEqual(pd.patches[1].args, ['subPatch'])
-            assertTokenizedLinesEqual(patchesTokenizedLines[1], [
+            assert.deepStrictEqual(pd.patches[1]!.args, ['subPatch'])
+            assertTokenizedLinesEqual(patchesTokenizedLines[1]!, [
                 ['#X', 'obj', '46', '39', 'inlet~'],
                 ['#X', 'obj', '47', '83', 'delwrite~', 'myDel'],
                 ['#X', 'obj', '47', '126', 'delread~', 'myDel'],
@@ -89,7 +89,7 @@ describe('parse', () => {
             ])
             ;('1')
             // sub-subpatch
-            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[2].layout, {
+            assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[2]!.layout, {
                 openOnLoad: 1,
                 hideObjectNameAndArguments: 1,
                 windowX: 842,
@@ -102,8 +102,8 @@ describe('parse', () => {
                 viewportWidth: 85,
                 viewportHeight: 60,
             })
-            assert.deepStrictEqual(pd.patches[2].args, ['subSubPatch'])
-            assertTokenizedLinesEqual(patchesTokenizedLines[2], [
+            assert.deepStrictEqual(pd.patches[2]!.args, ['subSubPatch'])
+            assertTokenizedLinesEqual(patchesTokenizedLines[2]!, [
                 ['#X', 'obj', '67', '67', 'outlet~'],
                 ['#X', 'obj', '66', '32', 'phasor~', '-440'],
                 ['#X', 'connect', '1', '0', '0', '0'],
@@ -153,7 +153,7 @@ describe('parse', () => {
             const pd = parse(TEST_PATCHES.nodeElems)
             assert.strictEqual(Object.keys(pd.patches).length, 1)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
-            const patch = pd.patches[0]
+            const patch = pd.patches[0]!
 
             assert.deepStrictEqual<PdJson.AtomNode>(patch.nodes[0], {
                 id: '0',
@@ -410,15 +410,15 @@ describe('parse', () => {
                 '3',
             ])
             assert.deepStrictEqual(Object.keys(pd.arrays), ['0', '1', '2'])
-            const patch = pd.patches['0']
+            const patch = pd.patches['0']!
 
-            const arraySubpatch = pd.patches['1']
-            const arrayNotSavingContentPointsSubpatch = pd.patches['2']
-            const arrayNotSavingContentBezierSubpatch = pd.patches['3']
+            const arraySubpatch = pd.patches['1']!
+            const arrayNotSavingContentPointsSubpatch = pd.patches['2']!
+            const arrayNotSavingContentBezierSubpatch = pd.patches['3']!
 
-            const arrayPolygon = pd.arrays['0']
-            const arrayNotSavingContentPoints = pd.arrays['1']
-            const arrayNotSavingContentBezier = pd.arrays['2']
+            const arrayPolygon = pd.arrays['0']!
+            const arrayNotSavingContentPoints = pd.arrays['1']!
+            const arrayNotSavingContentBezier = pd.arrays['2']!
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
@@ -512,7 +512,7 @@ describe('parse', () => {
             )
 
             assert.deepStrictEqual<PdJson.PdArray>(
-                { ...arrayPolygon, data: roundArray(arrayPolygon.data, 5) },
+                { ...arrayPolygon, data: roundArray(arrayPolygon.data!, 5) },
                 {
                     id: '0',
                     args: ['myArrayPolygon', 35, 1],
@@ -758,19 +758,19 @@ describe('parse', () => {
             const pd = parse(TEST_PATCHES.objectSizePdVanilla)
             assert.strictEqual(Object.keys(pd.patches).length, 1)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
-            const patch = pd.patches[0]
+            const patch = pd.patches[0]!
 
-            assert.strictEqual((patch.nodes[0].layout as PdJson.BaseNode['layout']).width, 30)
-            assert.strictEqual((patch.nodes[1].layout as PdJson.BaseNode['layout']).width, 40)
+            assert.strictEqual((patch.nodes[0]!.layout! as PdJson.BaseNode['layout'])!.width, 30)
+            assert.strictEqual((patch.nodes[1]!.layout! as PdJson.BaseNode['layout'])!.width, 40)
         })
 
         it('should add inlets and outlets in layout order', () => {
             const pd1 = parse(TEST_PATCHES.portletsOrder1)
             const pd2 = parse(TEST_PATCHES.portletsOrder2)
-            assert.deepStrictEqual(pd1.patches[1].inlets, ['0', '1'])
-            assert.deepStrictEqual(pd1.patches[1].outlets, ['2', '3'])
-            assert.deepStrictEqual(pd2.patches[3].inlets, ['1', '0'])
-            assert.deepStrictEqual(pd2.patches[3].outlets, ['3', '2'])
+            assert.deepStrictEqual(pd1.patches[1]!.inlets, ['0', '1'])
+            assert.deepStrictEqual(pd1.patches[1]!.outlets, ['2', '3'])
+            assert.deepStrictEqual(pd2.patches[3]!.inlets, ['1', '0'])
+            assert.deepStrictEqual(pd2.patches[3]!.outlets, ['3', '2'])
         })
 
         it('should manage to parse without newline at the end of the file', () => {
@@ -780,7 +780,7 @@ describe('parse', () => {
                 '#X obj 41 50 dac~;\n' +
                 '#X connect 0 0 1 0;'
             const pd = parse(patchStr)
-            const patch = pd.patches[0]
+            const patch = pd.patches[0]!
             assert.strictEqual(Object.keys(patch.nodes).length, 2)
             assert.strictEqual(patch.connections.length, 1)
         })

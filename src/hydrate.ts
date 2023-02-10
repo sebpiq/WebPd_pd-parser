@@ -10,7 +10,7 @@
  */
 
 import { PdJson } from '@webpd/pd-json'
-import { parseBoolArg, parseNumberArg, parseArg, parseStringArg } from './args'
+import { parseBoolToken, parseFloatToken, parseArg, parseStringToken, parseIntToken } from './tokens'
 import { TokenizedLine, Tokens } from './tokenize'
 
 export const hydratePatch = (
@@ -18,49 +18,49 @@ export const hydratePatch = (
     { tokens: canvasTokens }: TokenizedLine,
     { tokens: coordsTokens }: TokenizedLine
 ): PdJson.Patch => {
-    const patch: PdJson.Patch = {
+    let layout: PdJson.Patch['layout'] = {
+        windowX: parseIntToken(canvasTokens[2]),
+        windowY: parseIntToken(canvasTokens[3]),
+        windowWidth: parseIntToken(canvasTokens[4]),
+        windowHeight: parseIntToken(canvasTokens[5]),
+    }
+    if (typeof canvasTokens[7] !== 'undefined') {
+        layout.openOnLoad = parseBoolToken(canvasTokens[7])
+    }
+    if (typeof coordsTokens[8] !== 'undefined') {
+        const graphOnParentRaw = parseFloatToken(coordsTokens[8])
+        layout.graphOnParent = graphOnParentRaw > 0 ? 1 : 0
+        if (layout.graphOnParent === 1) {
+            layout = {
+                ...layout,
+                hideObjectNameAndArguments: graphOnParentRaw === 2 ? 1: 0,
+                viewportX: coordsTokens[9] ? parseIntToken(coordsTokens[9]) : 0,
+                viewportY: coordsTokens[10] ? parseIntToken(coordsTokens[10]) : 0,
+                viewportWidth: parseIntToken(coordsTokens[6]),
+                viewportHeight: parseIntToken(coordsTokens[7]),
+            }
+        }
+    }
+    return {
         id,
-        layout: {
-            windowX: parseInt(canvasTokens[2], 10),
-            windowY: parseInt(canvasTokens[3], 10),
-            windowWidth: parseInt(canvasTokens[4], 10),
-            windowHeight: parseInt(canvasTokens[5], 10),
-        },
-        args: [canvasTokens[6]],
+        layout,
+        args: [parseStringToken(canvasTokens[6])],
         nodes: {},
         connections: [],
         inlets: [],
         outlets: [],
     }
-    if (typeof canvasTokens[7] !== 'undefined') {
-        patch.layout.openOnLoad = parseBoolArg(canvasTokens[7])
-    }
-    if (typeof coordsTokens[8] !== 'undefined') {
-        const graphOnParentRaw = parseNumberArg(coordsTokens[8])
-        patch.layout.graphOnParent = graphOnParentRaw > 0 ? 1 : 0
-        if (patch.layout.graphOnParent === 1) {
-            patch.layout = {
-                ...patch.layout,
-                hideObjectNameAndArguments: graphOnParentRaw === 2 ? 1: 0,
-                viewportX: coordsTokens[9] ? parseInt(coordsTokens[9], 10) : 0,
-                viewportY: coordsTokens[10] ? parseInt(coordsTokens[10], 10) : 0,
-                viewportWidth: parseInt(coordsTokens[6], 10),
-                viewportHeight: parseInt(coordsTokens[7], 10),
-            }
-        }
-    }
-    return patch
 }
 
 export const hydrateArray = (
     id: PdJson.NodeGlobalId,
     { tokens }: TokenizedLine
 ): PdJson.PdArray => {
-    const arrayName = tokens[2]
-    const arraySize = parseFloat(tokens[3])
+    const arrayName = parseStringToken(tokens[2])
+    const arraySize = parseIntToken(tokens[3])
     // Options flag :
     // first bit if for `saveContents` second for `drawAs`
-    const optionsFlag = parseFloat(tokens[5])
+    const optionsFlag = parseIntToken(tokens[5])
     const saveContents = (optionsFlag % 2) as 0 | 1
     const drawAs = ['polygon', 'points', 'bezier'][
         optionsFlag >>> 1
@@ -80,7 +80,7 @@ export const hydrateNodePatch = (
     { tokens }: TokenizedLine
 ): PdJson.SubpatchNode => {
     const canvasType = tokens[4]
-    const args = []
+    const args: PdJson.NodeArgs = []
 
     if (canvasType !== 'pd' && canvasType !== 'graph') {
         throw new Error(`unknown canvasType : ${canvasType}`)
@@ -88,18 +88,18 @@ export const hydrateNodePatch = (
 
     // add subpatch name
     if (canvasType === 'pd') {
-        args.push(tokens[5])
+        args.push(parseStringToken(tokens[5]))
     }
 
     return {
         id,
         type: canvasType,
-        patchId: tokens[1],
+        patchId: parseStringToken(tokens[1]),
         nodeClass: 'subpatch',
         args,
         layout: {
-            x: parseInt(tokens[2], 10),
-            y: parseInt(tokens[3], 10),
+            x: parseIntToken(tokens[2]),
+            y: parseIntToken(tokens[3]),
         },
     }
 }
@@ -112,7 +112,7 @@ export const hydrateNodeArray = (
     args: [],
     type: 'array',
     nodeClass: 'array',
-    arrayId: tokens[1],
+    arrayId: parseStringToken(tokens[1]),
 })
 
 export const hydrateNodeBase = (
@@ -120,17 +120,17 @@ export const hydrateNodeBase = (
     tokens: Tokens
 ): PdJson.BaseNode => {
     const elementType = tokens[1]
-    let type // the object name
+    let type = '' // the object name
     let args: Tokens // the construction args for the object
 
     // 2 categories here :
     //  - elems whose name is `elementType`
     //  - elems whose name is `token[4]`
     if (elementType === 'obj') {
-        type = tokens[4]
+        type = parseStringToken(tokens[4])
         args = tokens.slice(5)
     } else {
-        type = elementType
+        type = parseStringToken(elementType)
         args = tokens.slice(4)
     }
 
@@ -144,8 +144,8 @@ export const hydrateNodeBase = (
         type,
         args,
         layout: {
-            x: parseNumberArg(tokens[2]),
-            y: parseNumberArg(tokens[3]),
+            x: parseFloatToken(tokens[2]),
+            y: parseFloatToken(tokens[3]),
         },
     }
 }
@@ -154,12 +154,12 @@ export const hydrateConnection = ({
     tokens,
 }: TokenizedLine): PdJson.Connection => ({
     source: {
-        nodeId: tokens[2],
-        portletId: parseInt(tokens[3], 10),
+        nodeId: parseStringToken(tokens[2]),
+        portletId: parseIntToken(tokens[3]),
     },
     sink: {
-        nodeId: tokens[4],
-        portletId: parseInt(tokens[5], 10),
+        nodeId: parseStringToken(tokens[4]),
+        portletId: parseIntToken(tokens[5]),
     },
 })
 
@@ -189,182 +189,182 @@ export const hydrateNodeControl = (
         // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
         node.layout = {
             ...node.layout,
-            width: parseNumberArg(args[0]),
-            labelPos: parseNumberArg(args[3]),
-            label: parseStringArg(args[4], '-'),
+            width: parseFloatToken(args[0]),
+            labelPos: parseFloatToken(args[3]),
+            label: parseStringToken(args[4], '-'),
         }
         node.args = [
-            parseNumberArg(args[1]),
-            parseNumberArg(args[2]),
-            parseStringArg(args[5], '-'),
-            parseStringArg(args[6], '-'),
+            parseFloatToken(args[1]),
+            parseFloatToken(args[2]),
+            parseStringToken(args[5], '-'),
+            parseStringToken(args[6], '-'),
         ]
     } else if (node.type === 'bng') {
         // <size> <hold> <interrupt> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color>
         node.layout = {
             ...node.layout,
-            size: parseNumberArg(args[0]),
-            hold: parseNumberArg(args[1]),
-            interrupt: parseNumberArg(args[2]),
-            label: parseStringArg(args[6], 'empty'),
-            labelX: parseNumberArg(args[7]),
-            labelY: parseNumberArg(args[8]),
+            size: parseFloatToken(args[0]),
+            hold: parseFloatToken(args[1]),
+            interrupt: parseFloatToken(args[2]),
+            label: parseStringToken(args[6], 'empty'),
+            labelX: parseFloatToken(args[7]),
+            labelY: parseFloatToken(args[8]),
             labelFont: args[9],
-            labelFontSize: parseNumberArg(args[10]),
+            labelFontSize: parseFloatToken(args[10]),
             bgColor: args[11],
             fgColor: args[12],
             labelColor: args[13],
         }
         node.args = [
-            parseBoolArg(args[3]),
-            parseStringArg(args[4], 'empty'),
-            parseStringArg(args[5], 'empty'),
+            parseBoolToken(args[3]),
+            parseStringToken(args[4], 'empty'),
+            parseStringToken(args[5], 'empty'),
         ]
     } else if (node.type === 'tgl') {
         // <size> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <init_value> <default_value>
         node.layout = {
             ...node.layout,
-            size: parseNumberArg(args[0]),
-            label: parseStringArg(args[4], 'empty'),
-            labelX: parseNumberArg(args[5]),
-            labelY: parseNumberArg(args[6]),
+            size: parseFloatToken(args[0]),
+            label: parseStringToken(args[4], 'empty'),
+            labelX: parseFloatToken(args[5]),
+            labelY: parseFloatToken(args[6]),
             labelFont: args[7],
-            labelFontSize: parseNumberArg(args[8]),
+            labelFontSize: parseFloatToken(args[8]),
             bgColor: args[9],
             fgColor: args[10],
             labelColor: args[11],
         }
         node.args = [
-            parseNumberArg(args[13]),
-            parseBoolArg(args[1]),
-            parseNumberArg(args[12]),
-            parseStringArg(args[2], 'empty'),
-            parseStringArg(args[3], 'empty'),
+            parseFloatToken(args[13]),
+            parseBoolToken(args[1]),
+            parseFloatToken(args[12]),
+            parseStringToken(args[2], 'empty'),
+            parseStringToken(args[3], 'empty'),
         ]
     } else if (node.type === 'nbx') {
         // !!! doc is inexact here, logHeight is not at the specified position, and initial value of the nbx was missing.
         // <size> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <log_height>
         node.layout = {
             ...node.layout,
-            widthDigits: parseNumberArg(args[0]),
-            height: parseNumberArg(args[1]),
-            log: parseNumberArg(args[4]),
-            label: parseStringArg(args[8], 'empty'),
-            labelX: parseNumberArg(args[9]),
-            labelY: parseNumberArg(args[10]),
+            widthDigits: parseFloatToken(args[0]),
+            height: parseFloatToken(args[1]),
+            log: parseFloatToken(args[4]),
+            label: parseStringToken(args[8], 'empty'),
+            labelX: parseFloatToken(args[9]),
+            labelY: parseFloatToken(args[10]),
             labelFont: args[11],
-            labelFontSize: parseNumberArg(args[12]),
+            labelFontSize: parseFloatToken(args[12]),
             bgColor: args[13],
             fgColor: args[14],
             labelColor: args[15],
             logHeight: args[17],
         }
         node.args = [
-            parseNumberArg(args[2]),
-            parseNumberArg(args[3]),
-            parseBoolArg(args[5]),
-            parseNumberArg(args[16]),
-            parseStringArg(args[6], 'empty'),
-            parseStringArg(args[7], 'empty'),
+            parseFloatToken(args[2]),
+            parseFloatToken(args[3]),
+            parseBoolToken(args[5]),
+            parseFloatToken(args[16]),
+            parseStringToken(args[6], 'empty'),
+            parseStringToken(args[7], 'empty'),
         ]
     } else if (node.type === 'vsl' || node.type === 'hsl') {
         // <width> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value> <steady_on_click>
         node.layout = {
             ...node.layout,
-            width: parseNumberArg(args[0]),
-            height: parseNumberArg(args[1]),
-            log: parseNumberArg(args[4]),
-            label: parseStringArg(args[8], 'empty'),
-            labelX: parseNumberArg(args[9]),
-            labelY: parseNumberArg(args[10]),
+            width: parseFloatToken(args[0]),
+            height: parseFloatToken(args[1]),
+            log: parseFloatToken(args[4]),
+            label: parseStringToken(args[8], 'empty'),
+            labelX: parseFloatToken(args[9]),
+            labelY: parseFloatToken(args[10]),
             labelFont: args[11],
-            labelFontSize: parseNumberArg(args[12]),
+            labelFontSize: parseFloatToken(args[12]),
             bgColor: args[13],
             fgColor: args[14],
             labelColor: args[15],
             steadyOnClick: args[17],
         }
 
-        const minValue = parseNumberArg(args[2])
-        const maxValue = parseNumberArg(args[3])
-        const isLogScale = parseBoolArg(args[4])
-        const pixValue = parseNumberArg(args[16])
+        const minValue = parseFloatToken(args[2])
+        const maxValue = parseFloatToken(args[3])
+        const isLogScale = parseBoolToken(args[4])
+        const pixValue = parseFloatToken(args[16])
         const pixSize =
             node.type === 'hsl' ? node.layout.width : node.layout.height
 
         let initValue: number = 0
         if (isLogScale) {
-            const k = Math.log(maxValue / minValue) / (pixSize - 1)
+            const k = Math.log(maxValue / minValue) / (pixSize! - 1)
             initValue = minValue * Math.exp(k * pixValue * 0.01)
         } else {
             // Reversed engineered formula for the initial value.
             initValue =
                 minValue +
-                ((maxValue - minValue) * pixValue) / ((pixSize - 1) * 100)
+                ((maxValue - minValue) * pixValue) / ((pixSize! - 1) * 100)
         }
 
         node.args = [
             minValue,
             maxValue,
-            parseBoolArg(args[5]),
+            parseBoolToken(args[5]),
             initValue,
-            parseStringArg(args[6], 'empty'),
-            parseStringArg(args[7], 'empty'),
+            parseStringToken(args[6], 'empty'),
+            parseStringToken(args[7], 'empty'),
         ]
     } else if (node.type === 'vradio' || node.type === 'hradio') {
         // <size> <new_old> <init> <number> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value>
         node.layout = {
             ...node.layout,
-            size: parseNumberArg(args[0]),
-            label: parseStringArg(args[6], 'empty'),
-            labelX: parseNumberArg(args[7]),
-            labelY: parseNumberArg(args[8]),
+            size: parseFloatToken(args[0]),
+            label: parseStringToken(args[6], 'empty'),
+            labelX: parseFloatToken(args[7]),
+            labelY: parseFloatToken(args[8]),
             labelFont: args[9],
-            labelFontSize: parseNumberArg(args[10]),
+            labelFontSize: parseFloatToken(args[10]),
             bgColor: args[11],
             fgColor: args[12],
             labelColor: args[13],
         }
         node.args = [
-            parseNumberArg(args[3]),
-            parseBoolArg(args[1]),
-            parseNumberArg(args[14]),
-            parseStringArg(args[4], 'empty'),
-            parseStringArg(args[5], 'empty'),
-            parseBoolArg(args[2]),
+            parseFloatToken(args[3]),
+            parseBoolToken(args[1]),
+            parseFloatToken(args[14]),
+            parseStringToken(args[4], 'empty'),
+            parseStringToken(args[5], 'empty'),
+            parseBoolToken(args[2]),
         ]
     } else if (node.type === 'vu') {
         // <width> <height> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <label_color> <scale> <?>
         node.layout = {
             ...node.layout,
-            width: parseNumberArg(args[0]),
-            height: parseNumberArg(args[1]),
-            label: parseStringArg(args[3], 'empty'),
-            labelX: parseNumberArg(args[4]),
-            labelY: parseNumberArg(args[5]),
+            width: parseFloatToken(args[0]),
+            height: parseFloatToken(args[1]),
+            label: parseStringToken(args[3], 'empty'),
+            labelX: parseFloatToken(args[4]),
+            labelY: parseFloatToken(args[5]),
             labelFont: args[6],
-            labelFontSize: parseNumberArg(args[7]),
+            labelFontSize: parseFloatToken(args[7]),
             bgColor: args[8],
             labelColor: args[9],
-            log: parseNumberArg(args[10]),
+            log: parseFloatToken(args[10]),
         }
-        node.args = [parseStringArg(args[2], 'empty'), args[11]]
+        node.args = [parseStringToken(args[2], 'empty'), parseStringToken(args[11])]
     } else if (node.type === 'cnv') {
         // <size> <width> <height> <send> <receive> <label> <x_off> <y_off> <font> <font_size> <bg_color> <label_color> <?>
         node.layout = {
             ...node.layout,
-            size: parseNumberArg(args[0]),
-            width: parseNumberArg(args[1]),
-            height: parseNumberArg(args[2]),
-            label: parseStringArg(args[5], 'empty'),
-            labelX: parseNumberArg(args[6]),
-            labelY: parseNumberArg(args[7]),
+            size: parseFloatToken(args[0]),
+            width: parseFloatToken(args[1]),
+            height: parseFloatToken(args[2]),
+            label: parseStringToken(args[5], 'empty'),
+            labelX: parseFloatToken(args[6]),
+            labelY: parseFloatToken(args[7]),
             labelFont: args[8],
-            labelFontSize: parseNumberArg(args[9]),
+            labelFontSize: parseFloatToken(args[9]),
             bgColor: args[10],
             labelColor: args[11],
         }
-        node.args = [parseStringArg(args[3], 'empty'), parseStringArg(args[4], 'empty'), args[12]]
+        node.args = [parseStringToken(args[3], 'empty'), parseStringToken(args[4], 'empty'), parseStringToken(args[12])]
     } else {
         throw new Error(`Unexpected control node ${node.type}`)
     }
@@ -373,12 +373,12 @@ export const hydrateNodeControl = (
 
 export function hydrateLineAfterComma(
     node: PdJson.GenericNode,
-    lineAfterComma: Tokens
+    lineAfterComma?: Tokens
 ): PdJson.GenericNode
 
 export function hydrateLineAfterComma(
     node: PdJson.ControlNode,
-    lineAfterComma: Tokens
+    lineAfterComma?: Tokens
 ): PdJson.ControlNode
 
 export function hydrateLineAfterComma(
@@ -393,8 +393,8 @@ export function hydrateLineAfterComma(
         while (afterCommaTokens.length) {
             const command = afterCommaTokens.shift()
             if (command === 'f') {
-                ;(node.layout as PdJson.BaseNode['layout']).width =
-                    parseNumberArg(afterCommaTokens.shift())
+                ;(node.layout as PdJson.BaseNode['layout'])!.width =
+                    parseFloatToken(afterCommaTokens.shift())
             }
         }
     }

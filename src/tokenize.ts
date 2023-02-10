@@ -40,13 +40,13 @@ export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
         // of the line. So we need to look for non-escaped comma, and get that part after it.
         // Doing that is annoying in JS since regexps have no look-behind assertions.
         // The hack is to reverse the string, and use a regexp look-forward assertion.
-        const lineParts = _reverseString(lineMatch[1])
+        const lineParts = _reverseString(lineMatch[1]!)
             .split(AFTER_COMMA_RE)
             .reverse()
             .map(_reverseString)
 
         tokenizedLines.push({
-            tokens: tokenizeLine(lineParts[0]),
+            tokens: tokenizeLine(lineParts[0]!),
             lineAfterComma: lineParts[1]
                 ? tokenizeLine(lineParts[1])
                 : undefined,
@@ -61,7 +61,7 @@ const tokenizeLine = (line: string): Tokens => {
     const tokens: Tokens = []
     matches.forEach((match, i) => {
         const tokenStart =
-            i === 0 ? 0 : matches[i - 1].index + matches[i - 1][0].length
+            i === 0 ? 0 : matches[i - 1]!.index! + matches[i - 1]![0].length
         const tokenEnd = match.index
         const token = line.slice(tokenStart, tokenEnd)
         if (token.length) {
@@ -76,7 +76,7 @@ const tokenizeLine = (line: string): Tokens => {
     })
     const lastMatch = matches.slice(-1)[0]
     if (lastMatch) {
-        tokens.push(line.slice(lastMatch.index + lastMatch[0].length))
+        tokens.push(line.slice(lastMatch.index! + lastMatch[0].length))
     }
 
     return tokens
