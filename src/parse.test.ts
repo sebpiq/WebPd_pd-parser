@@ -120,7 +120,12 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { windowX: 778, windowY: 17, windowWidth: 450, windowHeight: 300 },
+                layout: {
+                    windowX: 778,
+                    windowY: 17,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -159,7 +164,7 @@ describe('parse', () => {
                 id: '0',
                 type: 'floatatom',
                 nodeClass: 'control',
-                args: [0, 0, '', ''],
+                args: [0, 0, 'floatatomRcvBla', 'floatatomSndBla'],
                 layout: {
                     x: 73,
                     y: 84,
@@ -169,10 +174,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual<PdJson.GenericNode>(patch.nodes[1], {
+            assert.deepStrictEqual<PdJson.MsgNode>(patch.nodes[1], {
                 id: '1',
                 type: 'msg',
-                nodeClass: 'generic',
+                nodeClass: 'control',
                 args: [89],
                 layout: { x: 73, y: 43 },
             })
@@ -181,7 +186,7 @@ describe('parse', () => {
                 id: '2',
                 type: 'bng',
                 nodeClass: 'control',
-                args: [0, '', ''],
+                args: [0, 'bngRcvBla', 'bngSndBla'],
                 layout: {
                     size: 15,
                     x: 142,
@@ -203,7 +208,7 @@ describe('parse', () => {
                 id: '3',
                 type: 'tgl',
                 nodeClass: 'control',
-                args: [10, 1, 10, 'tglSendBla', 'tglRcvBla'],
+                args: [10, 1, 10, 'tglRcvBla', 'tglSndBla'],
                 layout: {
                     x: 144,
                     y: 85,
@@ -223,7 +228,7 @@ describe('parse', () => {
                 id: '4',
                 type: 'nbx',
                 nodeClass: 'control',
-                args: [-1e37, 1e37, 1, 56789, '', ''],
+                args: [-1e37, 1e37, 1, 56789, 'nbxRcvBla', 'nbxSndBla'],
                 layout: {
                     x: 180,
                     y: 42,
@@ -246,7 +251,7 @@ describe('parse', () => {
                 id: '5',
                 type: 'hsl',
                 nodeClass: 'control',
-                args: [0, 1800, 1, 585, '', ''],
+                args: [0, 1800, 1, 585, 'hslRcvBla', 'hslSndBla'],
                 layout: {
                     x: 242,
                     y: 86,
@@ -269,7 +274,7 @@ describe('parse', () => {
                 id: '6',
                 type: 'vradio',
                 nodeClass: 'control',
-                args: [18, 1, 3, '', '', 1],
+                args: [18, 1, 3, 'vradioRcvBla', 'vradioSndBla', 1],
                 layout: {
                     x: 257,
                     y: 111,
@@ -289,7 +294,7 @@ describe('parse', () => {
                 id: '7',
                 type: 'vu',
                 nodeClass: 'control',
-                args: ['', '0'],
+                args: ['vuRcvBla', '0'],
                 layout: {
                     x: 89,
                     y: 141,
@@ -331,7 +336,7 @@ describe('parse', () => {
                 id: '9',
                 type: 'symbolatom',
                 nodeClass: 'control',
-                args: [0, 0, '', ''],
+                args: [0, 0, 'symbolatomRcvBla', 'symbolatomSndBla'],
                 layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '' },
             })
 
@@ -339,7 +344,7 @@ describe('parse', () => {
                 id: '10',
                 type: 'vsl',
                 nodeClass: 'control',
-                args: [0, 12700, 1, 9500, '', ''],
+                args: [0, 12700, 1, 9500, 'vslRcvBla', 'vslSndBla'],
                 layout: {
                     x: 458,
                     y: 62,
@@ -362,7 +367,7 @@ describe('parse', () => {
                 id: '11',
                 type: 'hradio',
                 nodeClass: 'control',
-                args: [8, 1, 0, '', '', 0],
+                args: [8, 1, 0, 'hradioRcvBla', 'hradioSndBla', 0],
                 layout: {
                     x: 69,
                     y: 311,
@@ -388,16 +393,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<Array<PdJson.Connection>>(
                 patch.connections,
-                [
-                    {
-                        source: { nodeId: '1', portletId: 0 },
-                        sink: { nodeId: '0', portletId: 0 },
-                    },
-                    {
-                        source: { nodeId: '2', portletId: 0 },
-                        sink: { nodeId: '0', portletId: 0 },
-                    },
-                ]
+                []
             )
         })
 
@@ -422,7 +418,12 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { windowX: 667, windowY: 72, windowWidth: 681, windowHeight: 545 },
+                layout: {
+                    windowX: 667,
+                    windowY: 72,
+                    windowWidth: 681,
+                    windowHeight: 545,
+                },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -555,7 +556,12 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { windowX: 49, windowY: 82, windowWidth: 450, windowHeight: 300 },
+                layout: {
+                    windowX: 49,
+                    windowY: 82,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -605,7 +611,12 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
-                layout: { windowX: 340, windowY: 223, windowWidth: 450, windowHeight: 300 },
+                layout: {
+                    windowX: 340,
+                    windowY: 223,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                },
                 args: ['10'],
                 nodes: {
                     '0': {
@@ -760,8 +771,14 @@ describe('parse', () => {
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]!
 
-            assert.strictEqual((patch.nodes[0]!.layout! as PdJson.BaseNode['layout'])!.width, 30)
-            assert.strictEqual((patch.nodes[1]!.layout! as PdJson.BaseNode['layout'])!.width, 40)
+            assert.strictEqual(
+                (patch.nodes[0]!.layout! as PdJson.BaseNode['layout'])!.width,
+                30
+            )
+            assert.strictEqual(
+                (patch.nodes[1]!.layout! as PdJson.BaseNode['layout'])!.width,
+                40
+            )
         })
 
         it('should add inlets and outlets in layout order', () => {

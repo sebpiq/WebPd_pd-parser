@@ -13,11 +13,18 @@ import { PdJson } from '@webpd/pd-json'
 import { parseBoolToken, parseFloatToken, parseArg, parseStringToken, parseIntToken } from './tokens'
 import { TokenizedLine, Tokens } from './tokenize'
 
+/**
+ * @param coordsTokenizedLine Defined only if the patch declares a graph on its parent,
+ * i.e. if the patch has a UI visible in its parent.
+ */
 export const hydratePatch = (
     id: PdJson.NodeGlobalId,
-    { tokens: canvasTokens }: TokenizedLine,
-    { tokens: coordsTokens }: TokenizedLine
+    canvasTokenizedLine: TokenizedLine,
+    coordsTokenizedLine: TokenizedLine | null
 ): PdJson.Patch => {
+    const { tokens: canvasTokens } = canvasTokenizedLine
+    const coordsTokens = coordsTokenizedLine ? coordsTokenizedLine.tokens: null
+
     let layout: PdJson.Patch['layout'] = {
         windowX: parseIntToken(canvasTokens[2]),
         windowY: parseIntToken(canvasTokens[3]),
@@ -27,7 +34,7 @@ export const hydratePatch = (
     if (typeof canvasTokens[7] !== 'undefined') {
         layout.openOnLoad = parseBoolToken(canvasTokens[7])
     }
-    if (typeof coordsTokens[8] !== 'undefined') {
+    if (coordsTokens && typeof coordsTokens[8] !== 'undefined') {
         const graphOnParentRaw = parseFloatToken(coordsTokens[8])
         layout.graphOnParent = graphOnParentRaw > 0 ? 1 : 0
         if (layout.graphOnParent === 1) {
@@ -199,6 +206,11 @@ export const hydrateNodeControl = (
             parseStringToken(args[5], '-'),
             parseStringToken(args[6], '-'),
         ]
+
+    // In Pd `msg` is actually more handled like a standard object, even though it is a control.
+    } else if (node.type === 'msg') {
+        node.args = node.args.map(parseArg)
+
     } else if (node.type === 'bng') {
         // <size> <hold> <interrupt> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color>
         node.layout = {
@@ -217,8 +229,8 @@ export const hydrateNodeControl = (
         }
         node.args = [
             parseBoolToken(args[3]),
-            parseStringToken(args[4], 'empty'),
             parseStringToken(args[5], 'empty'),
+            parseStringToken(args[4], 'empty'),
         ]
     } else if (node.type === 'tgl') {
         // <size> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <init_value> <default_value>
@@ -238,8 +250,8 @@ export const hydrateNodeControl = (
             parseFloatToken(args[13]),
             parseBoolToken(args[1]),
             parseFloatToken(args[12]),
-            parseStringToken(args[2], 'empty'),
             parseStringToken(args[3], 'empty'),
+            parseStringToken(args[2], 'empty'),
         ]
     } else if (node.type === 'nbx') {
         // !!! doc is inexact here, logHeight is not at the specified position, and initial value of the nbx was missing.
@@ -264,8 +276,8 @@ export const hydrateNodeControl = (
             parseFloatToken(args[3]),
             parseBoolToken(args[5]),
             parseFloatToken(args[16]),
-            parseStringToken(args[6], 'empty'),
             parseStringToken(args[7], 'empty'),
+            parseStringToken(args[6], 'empty'),
         ]
     } else if (node.type === 'vsl' || node.type === 'hsl') {
         // <width> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value> <steady_on_click>
@@ -308,8 +320,8 @@ export const hydrateNodeControl = (
             maxValue,
             parseBoolToken(args[5]),
             initValue,
-            parseStringToken(args[6], 'empty'),
             parseStringToken(args[7], 'empty'),
+            parseStringToken(args[6], 'empty'),
         ]
     } else if (node.type === 'vradio' || node.type === 'hradio') {
         // <size> <new_old> <init> <number> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <default_value>
@@ -329,8 +341,8 @@ export const hydrateNodeControl = (
             parseFloatToken(args[3]),
             parseBoolToken(args[1]),
             parseFloatToken(args[14]),
-            parseStringToken(args[4], 'empty'),
             parseStringToken(args[5], 'empty'),
+            parseStringToken(args[4], 'empty'),
             parseBoolToken(args[2]),
         ]
     } else if (node.type === 'vu') {
@@ -364,7 +376,11 @@ export const hydrateNodeControl = (
             bgColor: args[10],
             labelColor: args[11],
         }
-        node.args = [parseStringToken(args[3], 'empty'), parseStringToken(args[4], 'empty'), parseStringToken(args[12])]
+        node.args = [
+            parseStringToken(args[4], 'empty'),
+            parseStringToken(args[3], 'empty'), 
+            parseStringToken(args[12])
+        ]
     } else {
         throw new Error(`Unexpected control node ${node.type}`)
     }

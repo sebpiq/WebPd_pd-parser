@@ -14,6 +14,7 @@ import { PdJson } from '@webpd/pd-json'
 export type Tokens = Array<string>
 
 export interface TokenizedLine {
+    lineIndex: number
     tokens: Tokens
     lineAfterComma?: Tokens
 }
@@ -34,7 +35,7 @@ export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
     // use our regular expression to match instances of valid Pd lines
     LINES_RE.lastIndex = 0 // reset lastIndex, in case the previous call threw an error
 
-    let lineMatch
+    let lineMatch: RegExpMatchArray | null = null
     while ((lineMatch = LINES_RE.exec(pdString))) {
         // In order to support object width, pd vanilla adds something like ", f 10" at the end
         // of the line. So we need to look for non-escaped comma, and get that part after it.
@@ -45,11 +46,14 @@ export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
             .reverse()
             .map(_reverseString)
 
+        const lineIndex = pdString.slice(0, lineMatch.index).split('\n').length - 1
+
         tokenizedLines.push({
             tokens: tokenizeLine(lineParts[0]!),
             lineAfterComma: lineParts[1]
                 ? tokenizeLine(lineParts[1])
                 : undefined,
+            lineIndex
         })
     }
 
