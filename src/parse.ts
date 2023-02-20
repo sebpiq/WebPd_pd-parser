@@ -60,7 +60,7 @@ export default (pdString: PdJson.PdString): PdJson.Pd => {
         )
         patch = _computePatchPortlets(patch)
         if (patchTokenizedLines.length) {
-            throw new ParseError('invalid chunks', patchTokenizedLines[0]!.lineIndex)
+            throw new ParseError('invalid chunks ' + JSON.stringify(patchTokenizedLines, null, 2), patchTokenizedLines[0]!.lineIndex)
         }
         pd.patches[patch.id] = patch
     })
@@ -123,11 +123,27 @@ export const parsePatches = (
 
                 // If not first line, starts a subpatch
             } else if (_tokensMatch(tokens, '#N', 'canvas')) {
-                ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
+                [pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
                     pd,
                     tokenizedLines,
                     patchTokenizedLinesMap
                 )
+
+                // Table : a table subpatch
+                // It seems that a table object is just a subpatch containing an array.
+                // Therefore we add some synthetic lines to the tokenized file to simulate
+                // this subpatch. 
+            } else if (_tokensMatch(tokens, '#X', 'obj', tokens[2]!, tokens[3]!, 'table')) {
+                const tableTokens = tokenizedLines.shift()!.tokens
+                tokenizedLines = [
+                    { tokens: ['#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'], lineIndex },
+                    { tokens: ['#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'], lineIndex },
+                    { tokens: ['#X', 'array', tableTokens[5]!, tableTokens[6]!, 'float', '0'], lineIndex },
+                    { tokens: ['#X', 'restore', '0', '0', 'graph'], lineIndex },
+                    { tokens: ['#X', 'restore', tableTokens[2]!, tableTokens[3]!, 'table'], lineIndex },
+                    ...tokenizedLines
+                ]
+                ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(pd, tokenizedLines, patchTokenizedLinesMap)
 
                 // coords : visual range of framesets
             } else if (_tokensMatch(tokens, '#X', 'coords')) {
@@ -142,7 +158,7 @@ export const parsePatches = (
                     ...tokenizedLines[0]!.tokens.slice(2),
                 ]
                 continueIteration = false
-
+                
                 // A normal chunk to add to the current patch
             } else {
                 patchTokenizedLines.push(tokenizedLines.shift()!)

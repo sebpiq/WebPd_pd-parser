@@ -555,6 +555,107 @@ describe('parse', () => {
             )
         })
 
+        it('should parse tables rightly', () => {
+            const pd = parse(TEST_PATCHES.tables)
+            assert.deepStrictEqual(Object.keys(pd.patches), [
+                '0',
+                '1',
+                '2',
+            ])
+            assert.deepStrictEqual(Object.keys(pd.arrays), ['0'])
+            const patch = pd.patches['0']!
+            const graphSubpatch = pd.patches['1']!
+            const arraySubpatch = pd.patches['2']!
+
+            const array = pd.arrays['0']!
+
+            assert.deepStrictEqual<PdJson.Patch>(patch, {
+                id: '0',
+                layout: {
+                    windowX: 114,
+                    windowY: 400,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                },
+                args: ['10'],
+                nodes: {
+                    '0': {
+                        id: '0',
+                        type: 'table',
+                        nodeClass: 'subpatch',
+                        args: [],
+                        layout: { x: 290, y: 57 },
+                        patchId: '1',
+                    },
+                },
+                connections: [],
+                inlets: [],
+                outlets: [],
+            })
+
+            assert.deepStrictEqual<PdJson.Patch>(graphSubpatch, {
+                id: '1',
+                layout: {
+                    openOnLoad: 0,
+                    windowX: 0,
+                    windowY: 0,
+                    windowWidth: 100,
+                    windowHeight: 100,
+                },
+                args: ['(subpatch)'],
+                nodes: {
+                    '0': {
+                        id: '0',
+                        type: 'graph',
+                        nodeClass: 'subpatch',
+                        patchId: '2',
+                        args: [],
+                        layout: {
+                            x: 0,
+                            y: 0,
+                        }
+                    },
+                },
+                connections: [],
+                inlets: [],
+                outlets: [],
+            })
+
+            assert.deepStrictEqual<PdJson.Patch>(arraySubpatch, {
+                id: '2',
+                layout: {
+                    openOnLoad: 0,
+                    windowX: 0,
+                    windowY: 0,
+                    windowWidth: 100,
+                    windowHeight: 100,
+                },
+                args: ['(subpatch)'],
+                nodes: {
+                    '0': {
+                        id: '0',
+                        type: 'array',
+                        nodeClass: 'array',
+                        arrayId: '0',
+                        args: [],
+                    },
+                },
+                connections: [],
+                inlets: [],
+                outlets: [],
+            })
+
+            assert.deepStrictEqual<PdJson.PdArray>(
+                array,
+                {
+                    id: '0',
+                    args: ['myTable', 35, 0],
+                    layout: { drawAs: 'polygon' },
+                    data: null,
+                }
+            )
+        })
+
         it('should parse graph rightly', () => {
             const pd = parse(TEST_PATCHES.graphs)
             assert.strictEqual(Object.keys(pd.patches).length, 2)

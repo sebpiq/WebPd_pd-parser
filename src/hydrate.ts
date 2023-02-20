@@ -89,7 +89,7 @@ export const hydrateNodePatch = (
     const canvasType = tokens[4]
     const args: PdJson.NodeArgs = []
 
-    if (canvasType !== 'pd' && canvasType !== 'graph') {
+    if (canvasType !== 'pd' && canvasType !== 'graph' && canvasType !== 'table') {
         throw new Error(`unknown canvasType : ${canvasType}`)
     }
 
