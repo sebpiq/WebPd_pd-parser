@@ -20,7 +20,9 @@ export interface TokenizedLine {
 }
 
 // Regular expression to split tokens in a message.
-export const TOKENS_RE = /(\s*\\,\s*)|(\s*\\;\s*)|\s+|\r\n?|\n/
+// For groups 'semi' and 'colon', we capture as a separator only unescaped characters.
+// A separator can be e.g. : " ,  " or "; "
+export const TOKENS_RE = /(?<comma>((?<!\\)\s*)((?<!\\\\)\\,)((?<!\\)\s*))|(?<semi>((?<!\\)\s*)((?<!\\\\)\\;)((?<!\\)\s*))|((?<!\\)\s)+|\r\n?|\n/
 export const AFTER_COMMA_RE = /,(?!\\)/
 
 // Regular expression for finding valid lines of Pd in a file
@@ -60,7 +62,7 @@ export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
     return tokenizedLines
 }
 
-const tokenizeLine = (line: string): Tokens => {
+export const tokenizeLine = (line: string): Tokens => {
     const matches = Array.from(line.matchAll(new RegExp(TOKENS_RE, 'g')))
     const tokens: Tokens = []
     matches.forEach((match, i) => {
@@ -72,9 +74,9 @@ const tokenizeLine = (line: string): Tokens => {
             tokens.push(token)
         }
 
-        if (match[1]) {
+        if (match.groups!['comma']) {
             tokens.push(',')
-        } else if (match[2]) {
+        } else if (match.groups!['semi']) {
             tokens.push(';')
         }
     })

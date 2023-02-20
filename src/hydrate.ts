@@ -94,7 +94,7 @@ export const hydrateNodePatch = (
     }
 
     // add subpatch name
-    if (canvasType === 'pd') {
+    if (canvasType === 'pd' && tokens[5] !== undefined) {
         args.push(parseStringToken(tokens[5]))
     }
 
@@ -192,7 +192,7 @@ export const hydrateNodeControl = (
         nodeClass: 'control',
     } as PdJson.ControlNode
 
-    if (node.type === 'floatatom' || node.type === 'symbolatom') {
+    if (node.type === 'floatatom' || node.type === 'symbolatom' || node.type === 'listbox') {
         // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
         node.layout = {
             ...node.layout,

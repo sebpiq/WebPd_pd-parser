@@ -11,11 +11,10 @@
 
 import { PdJson } from '@webpd/pd-json'
 import assert from 'assert'
-import { hydrateNodeControl } from './hydrate'
+import { hydrateNodeControl, hydrateNodePatch } from './hydrate'
 
 describe('hydrate', () => {
     describe('hydrateNodeControl - hsl/vsl', () => {
-
         it('should hydrate hsl log value correctly', () => {
             const node = hydrateNodeControl({
                 id: 'dummy',
@@ -41,6 +40,29 @@ describe('hydrate', () => {
                 args: [15, 201, 10, 1000, 1, 1, '', '', '', 0, -9, 0, 10, '#fcfcfc', '#000000', '#000000', 16100, 1]
             })
             assert.deepStrictEqual<PdJson.SliderNode['args']>(node.args, [10, 1000, 1, 407.380277804113, '', ''])
+        })
+    })
+
+    describe('hydrateNodePatch', () => {
+        it('should hydrate subpatch without name', () => {
+            const node = hydrateNodePatch(
+                'pd_node_p1',
+                { 
+                    tokens: ['PATCH', 'p1', '269', '614', 'pd'],
+                    lineIndex: 0 
+                },
+            )
+            assert.deepStrictEqual<PdJson.SubpatchNode>(node, {
+                id: 'pd_node_p1',
+                patchId: 'p1',
+                type: 'pd',
+                nodeClass: 'subpatch',
+                args: [],
+                layout: {
+                    x: 269,
+                    y: 614,
+                },
+            })
         })
     })
 })

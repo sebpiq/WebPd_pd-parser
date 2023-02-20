@@ -13,8 +13,8 @@ import { PdJson } from '@webpd/pd-json'
 
 // Regular expressions to detect escaped special chars.
 const ESCAPED_DOLLAR_VAR_RE_GLOB = /\\(\$\d+)/g
-const ESCAPED_COMMA_VAR_RE_GLOB = /\\,/g
-const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\;/g
+const ESCAPED_COMMA_VAR_RE_GLOB = /\\\\\\,/g
+const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\\\\\;/g
 
 /**
  * Parses token to a node arg (string or a number).

@@ -391,6 +391,14 @@ describe('parse', () => {
                 layout: { x: 205, y: 308 },
             })
 
+            assert.deepStrictEqual<PdJson.AtomNode>(patch.nodes[13], {
+                id: '13',
+                type: 'listbox',
+                nodeClass: 'control',
+                args: [0, 0, 'listboxRcvBla', 'listboxSndBla'],
+                layout: { x: 329, y: 26, width: 20, labelPos: 0, label: '' },
+            })
+
             assert.deepStrictEqual<Array<PdJson.Connection>>(
                 patch.connections,
                 []

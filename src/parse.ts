@@ -32,7 +32,7 @@ nextPatchId.counter = -1
 export const nextArrayId = (): string => `${++nextArrayId.counter}`
 nextArrayId.counter = -1
 
-const NODES = ['obj', 'floatatom', 'symbolatom', 'msg', 'text']
+const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
 
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
@@ -91,6 +91,30 @@ export const parsePatches = (
 
     while (tokenizedLines.length && continueIteration) {
         const { tokens, lineIndex } = tokenizedLines[0]!
+        if (_tokensMatch(tokens, '#N', 'struct')) {
+            console.warn(`"#N struct" chunk is not supported`, lineIndex)
+            tokenizedLines.shift()!
+            continue
+        }
+
+        if (_tokensMatch(tokens, '#X', 'declare')) {
+            console.warn(`"#X declare" chunk is not supported`, lineIndex)
+            tokenizedLines.shift()!
+            continue
+        }
+
+        if (_tokensMatch(tokens, '#X', 'scalar')) {
+            console.warn(`"#X scalar" chunk is not supported`, lineIndex)
+            tokenizedLines.shift()!
+            continue
+        }
+
+        if (_tokensMatch(tokens, '#X', 'f')) {
+            console.warn(`"#X f" chunk is not supported`, lineIndex)
+            tokenizedLines.shift()!
+            continue
+        }
+
         iterCounter++
         catchParsingErrors(lineIndex, () => {
             // First line of the patch / subpatch, initializes the patch

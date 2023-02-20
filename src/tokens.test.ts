@@ -27,8 +27,7 @@ describe('tokens', () => {
         })
 
         it('should unescape comas and semicolons', () => {
-            assert.strictEqual(parseStringToken('\\,bla'), ',bla')
-            assert.strictEqual(parseStringToken('lolo\\;\\,'), 'lolo;,')
+            assert.strictEqual(parseStringToken('lolo\\\\\\;\\\\\\,'), 'lolo;,')
         })
 
         it('should return empty string if empty value', () => {
