@@ -48,7 +48,7 @@ describe('parse', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
             const emptyPd: PdJson.Pd = { patches: {}, arrays: {} }
             const [pd, remainingTokenizedLines, patchesTokenizedLines] =
-                parsePatches(emptyPd, tokenizedLines, {})
+                parsePatches(emptyPd, true, tokenizedLines, {})
             assert.deepStrictEqual(remainingTokenizedLines, [])
             assert.strictEqual(Object.keys(patchesTokenizedLines).length, 3)
 
@@ -120,6 +120,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
+                isRoot: true,
                 layout: {
                     windowX: 778,
                     windowY: 17,
@@ -426,6 +427,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
+                isRoot: true,
                 layout: {
                     windowX: 667,
                     windowY: 72,
@@ -466,6 +468,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(arraySubpatch, {
                 id: '1',
+                isRoot: false,
                 layout: {
                     openOnLoad: 0,
                     windowX: 0,
@@ -571,6 +574,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
+                isRoot: true,
                 layout: {
                     windowX: 114,
                     windowY: 400,
@@ -595,6 +599,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(graphSubpatch, {
                 id: '1',
+                isRoot: false,
                 layout: {
                     openOnLoad: 0,
                     windowX: 0,
@@ -623,6 +628,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(arraySubpatch, {
                 id: '2',
+                isRoot: false,
                 layout: {
                     openOnLoad: 0,
                     windowX: 0,
@@ -656,7 +662,7 @@ describe('parse', () => {
             )
         })
 
-        it('should parse graph rightly', () => {
+        it('should parse graphs rightly', () => {
             const pd = parse(TEST_PATCHES.graphs)
             assert.strictEqual(Object.keys(pd.patches).length, 2)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
@@ -665,6 +671,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
+                isRoot: true,
                 layout: {
                     windowX: 49,
                     windowY: 82,
@@ -689,6 +696,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(graphSubpatch, {
                 id: '1',
+                isRoot: false,
                 layout: {
                     openOnLoad: 0,
                     windowX: 0,
@@ -720,6 +728,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
+                isRoot: true,
                 layout: {
                     windowX: 340,
                     windowY: 223,
@@ -771,6 +780,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(subpatch1, {
                 id: '1',
+                isRoot: false,
                 layout: {
                     openOnLoad: 1,
                     windowX: 1072,
@@ -833,6 +843,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.Patch>(subpatch2, {
                 id: '2',
+                isRoot: false,
                 layout: {
                     openOnLoad: 1,
                     windowX: 842,

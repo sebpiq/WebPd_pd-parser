@@ -18,7 +18,8 @@ import { TokenizedLine, Tokens } from './tokenize'
  * i.e. if the patch has a UI visible in its parent.
  */
 export const hydratePatch = (
-    id: PdJson.NodeGlobalId,
+    id: PdJson.GlobalId,
+    isRoot: boolean,
     canvasTokenizedLine: TokenizedLine,
     coordsTokenizedLine: TokenizedLine | null
 ): PdJson.Patch => {
@@ -50,6 +51,7 @@ export const hydratePatch = (
     }
     return {
         id,
+        isRoot,
         layout,
         args: [parseStringToken(canvasTokens[6])],
         nodes: {},
@@ -60,7 +62,7 @@ export const hydratePatch = (
 }
 
 export const hydrateArray = (
-    id: PdJson.NodeGlobalId,
+    id: PdJson.GlobalId,
     { tokens }: TokenizedLine
 ): PdJson.PdArray => {
     const arrayName = parseStringToken(tokens[2])
@@ -83,7 +85,7 @@ export const hydrateArray = (
 }
 
 export const hydrateNodePatch = (
-    id: PdJson.NodeLocalId,
+    id: PdJson.LocalId,
     { tokens }: TokenizedLine
 ): PdJson.SubpatchNode => {
     const canvasType = tokens[4]
@@ -112,7 +114,7 @@ export const hydrateNodePatch = (
 }
 
 export const hydrateNodeArray = (
-    id: PdJson.NodeLocalId,
+    id: PdJson.LocalId,
     { tokens }: TokenizedLine
 ): PdJson.ArrayNode => ({
     id,
@@ -123,7 +125,7 @@ export const hydrateNodeArray = (
 })
 
 export const hydrateNodeBase = (
-    id: PdJson.NodeLocalId,
+    id: PdJson.LocalId,
     tokens: Tokens
 ): PdJson.BaseNode => {
     const elementType = tokens[1]

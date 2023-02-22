@@ -78,10 +78,7 @@ export const parseBoolToken = (val: PdJson.NodeArg | undefined): 0 | 1 => {
     throw new ValueError(`Should be 0 or 1`)
 }
 
-/** 
- * Apply some operations to a string arg. 
- * @todo : document + dollar-var substitution should not be done here.
- */
+/** Unescape string args. */
 export const parseStringToken = (val: PdJson.NodeArg | undefined, emptyValue: string | null = null): string => {
     if (!isString(val)) {
         throw new ValueError(`Not a valid string arg ${val}`)
