@@ -59,7 +59,7 @@ describe('parse', () => {
                 windowWidth: 450,
                 windowHeight: 300,
             })
-            assert.deepStrictEqual(pd.patches[0]!.args, ['10'])
+            assert.deepStrictEqual(pd.patches[0]!.args, [])
             assertTokenizedLinesEqual(patchesTokenizedLines[0]!, [
                 ['#X', 'obj', '78', '81', 'osc~'],
                 ['PATCH', '1', '79', '117', 'pd', 'subPatch'],
@@ -77,7 +77,7 @@ describe('parse', () => {
                 windowWidth: 450,
                 windowHeight: 300,
             })
-            assert.deepStrictEqual(pd.patches[1]!.args, ['subPatch'])
+            assert.deepStrictEqual(pd.patches[1]!.args, [])
             assertTokenizedLinesEqual(patchesTokenizedLines[1]!, [
                 ['#X', 'obj', '46', '39', 'inlet~'],
                 ['#X', 'obj', '47', '83', 'delwrite~', 'myDel'],
@@ -87,7 +87,7 @@ describe('parse', () => {
                 ['#X', 'connect', '0', '0', '1', '0'],
                 ['#X', 'connect', '2', '0', '3', '0'],
             ])
-            ;('1')
+            
             // sub-subpatch
             assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[2]!.layout, {
                 openOnLoad: 1,
@@ -102,7 +102,7 @@ describe('parse', () => {
                 viewportWidth: 85,
                 viewportHeight: 60,
             })
-            assert.deepStrictEqual(pd.patches[2]!.args, ['subSubPatch'])
+            assert.deepStrictEqual(pd.patches[2]!.args, [])
             assertTokenizedLinesEqual(patchesTokenizedLines[2]!, [
                 ['#X', 'obj', '67', '67', 'outlet~'],
                 ['#X', 'obj', '66', '32', 'phasor~', '-440'],
@@ -127,7 +127,7 @@ describe('parse', () => {
                     windowWidth: 450,
                     windowHeight: 300,
                 },
-                args: ['10'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -368,7 +368,7 @@ describe('parse', () => {
                 id: '11',
                 type: 'hradio',
                 nodeClass: 'control',
-                args: [8, 1, 0, 'hradioRcvBla', 'hradioSndBla', 0],
+                args: [8, 0, 0, 'hradioRcvBla', 'hradioSndBla', 0],
                 layout: {
                     x: 69,
                     y: 311,
@@ -434,7 +434,7 @@ describe('parse', () => {
                     windowWidth: 681,
                     windowHeight: 545,
                 },
-                args: ['10'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -482,7 +482,7 @@ describe('parse', () => {
                     viewportWidth: 200,
                     viewportHeight: 140,
                 },
-                args: ['(subpatch)'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -581,7 +581,7 @@ describe('parse', () => {
                     windowWidth: 450,
                     windowHeight: 300,
                 },
-                args: ['10'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -607,7 +607,7 @@ describe('parse', () => {
                     windowWidth: 100,
                     windowHeight: 100,
                 },
-                args: ['(subpatch)'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -636,7 +636,7 @@ describe('parse', () => {
                     windowWidth: 100,
                     windowHeight: 100,
                 },
-                args: ['(subpatch)'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -678,7 +678,7 @@ describe('parse', () => {
                     windowWidth: 450,
                     windowHeight: 300,
                 },
-                args: ['10'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -710,7 +710,7 @@ describe('parse', () => {
                     viewportWidth: 200,
                     viewportHeight: 140,
                 },
-                args: ['(subpatch)'],
+                args: [],
                 nodes: {},
                 connections: [],
                 inlets: [],
@@ -735,7 +735,7 @@ describe('parse', () => {
                     windowWidth: 450,
                     windowHeight: 300,
                 },
-                args: ['10'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -788,7 +788,7 @@ describe('parse', () => {
                     windowWidth: 450,
                     windowHeight: 300,
                 },
-                args: ['subPatch'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',
@@ -857,7 +857,7 @@ describe('parse', () => {
                     viewportWidth: 85,
                     viewportHeight: 60,
                 },
-                args: ['subSubPatch'],
+                args: [],
                 nodes: {
                     '0': {
                         id: '0',

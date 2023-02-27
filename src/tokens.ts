@@ -21,7 +21,7 @@ const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\\\\\;/g
  * Needs to handle the case when the token is already a number as in the process of gathering
  * arguments we sometimes insert a number.
  */
-export const parseArg = (rawArg: PdJson.NodeArg | undefined): PdJson.NodeArg => {
+export const parseArg = (rawArg: PdJson.NodeArg | undefined): NonNullable<PdJson.NodeArg> => {
     // Try to parse arg as a number
     try {
         return parseFloatToken(rawArg)
@@ -66,7 +66,11 @@ export const parseIntToken = (token: string | undefined) => {
     if (token === undefined) {
         throw new ValueError(`Received undefined`)
     }
-    return parseInt(token, 10)
+    const parsed = parseInt(token, 10)
+    if (isNaN(parsed)) {
+        throw new ValueError(`Invalid int received`)
+    }
+    return parsed
 }
 
 /** Parses a '0' or '1' from a .pd file. */

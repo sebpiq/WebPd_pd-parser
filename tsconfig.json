@@ -4,6 +4,7 @@
         "strict": true
     },
     "include": [
+	"index.ts",
         "src",
         "@types/**/*.d.ts"
     ]

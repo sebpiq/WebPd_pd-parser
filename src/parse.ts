@@ -277,12 +277,13 @@ const parseArrays = (
                 if (!currentArray) {
                     throw new Error('got array data outside of a array.')
                 }
-                const currentData = currentArray.data
-                if (currentData === null) {
+                if (currentArray.args[2] === 0) {
                     throw new Error(
                         "got array data for an array that doesn't save contents."
                     )
                 }
+                const currentData = currentArray.data || []
+                currentArray.data = currentData
 
                 // reads in part of an array of data, starting at the index specified in this line
                 // name of the array comes from the the '#X array' and '#X restore' matches above

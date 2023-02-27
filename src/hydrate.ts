@@ -53,7 +53,7 @@ export const hydratePatch = (
         id,
         isRoot,
         layout,
-        args: [parseStringToken(canvasTokens[6])],
+        args: [],
         nodes: {},
         connections: [],
         inlets: [],
@@ -66,7 +66,7 @@ export const hydrateArray = (
     { tokens }: TokenizedLine
 ): PdJson.PdArray => {
     const arrayName = parseStringToken(tokens[2])
-    const arraySize = parseIntToken(tokens[3])
+    const arraySize = parseArg(tokens[3])
     // Options flag :
     // first bit if for `saveContents` second for `drawAs`
     const optionsFlag = parseIntToken(tokens[5])
@@ -77,7 +77,7 @@ export const hydrateArray = (
     return {
         id,
         args: [arrayName, arraySize, saveContents],
-        data: saveContents ? Array(arraySize).fill(0) : null,
+        data: null,
         layout: {
             drawAs,
         },
@@ -341,7 +341,7 @@ export const hydrateNodeControl = (
         }
         node.args = [
             parseFloatToken(args[3]),
-            parseBoolToken(args[1]),
+            parseBoolToken(args[2]),
             parseFloatToken(args[14]),
             parseStringToken(args[5], 'empty'),
             parseStringToken(args[4], 'empty'),
