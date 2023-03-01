@@ -10,7 +10,7 @@
  */
 
 import assert from 'assert'
-import parse, { parsePatches, nextPatchId, nextArrayId } from './parse'
+import parse, { _parsePatches, nextPatchId, nextArrayId, Compilation } from './parse'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 import TEST_PATCHES from '../test-patches'
 import { PdJson } from './types'
@@ -43,14 +43,22 @@ describe('parse', () => {
         nextArrayId.counter = -1
     })
 
-    describe('parsePatches', () => {
+    describe('_parsePatches', () => {
         it('should extract nested subpatches', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
             const emptyPd: PdJson.Pd = { patches: {}, arrays: {} }
-            const [pd, remainingTokenizedLines, patchesTokenizedLines] =
-                parsePatches(emptyPd, true, tokenizedLines, {})
-            assert.deepStrictEqual(remainingTokenizedLines, [])
-            assert.strictEqual(Object.keys(patchesTokenizedLines).length, 3)
+            const compilation: Compilation = {
+                pd: emptyPd,
+                patchTokenizedLinesMap: {},
+                tokenizedLines,
+                errors: [],
+                warnings: [],
+            }
+            _parsePatches(compilation, true)
+
+            const { pd, patchTokenizedLinesMap } = compilation
+            assert.deepStrictEqual(compilation.tokenizedLines, [])
+            assert.strictEqual(Object.keys(compilation.patchTokenizedLinesMap).length, 3)
 
             // root patch
             assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[0]!.layout, {
@@ -60,7 +68,7 @@ describe('parse', () => {
                 windowHeight: 300,
             })
             assert.deepStrictEqual(pd.patches[0]!.args, [])
-            assertTokenizedLinesEqual(patchesTokenizedLines[0]!, [
+            assertTokenizedLinesEqual(patchTokenizedLinesMap[0]!, [
                 ['#X', 'obj', '78', '81', 'osc~'],
                 ['PATCH', '1', '79', '117', 'pd', 'subPatch'],
                 ['#X', 'obj', '80', '175', 'dac~'],
@@ -78,7 +86,7 @@ describe('parse', () => {
                 windowHeight: 300,
             })
             assert.deepStrictEqual(pd.patches[1]!.args, [])
-            assertTokenizedLinesEqual(patchesTokenizedLines[1]!, [
+            assertTokenizedLinesEqual(patchTokenizedLinesMap[1]!, [
                 ['#X', 'obj', '46', '39', 'inlet~'],
                 ['#X', 'obj', '47', '83', 'delwrite~', 'myDel'],
                 ['#X', 'obj', '47', '126', 'delread~', 'myDel'],
@@ -103,7 +111,7 @@ describe('parse', () => {
                 viewportHeight: 60,
             })
             assert.deepStrictEqual(pd.patches[2]!.args, [])
-            assertTokenizedLinesEqual(patchesTokenizedLines[2]!, [
+            assertTokenizedLinesEqual(patchTokenizedLinesMap[2]!, [
                 ['#X', 'obj', '67', '67', 'outlet~'],
                 ['#X', 'obj', '66', '32', 'phasor~', '-440'],
                 ['#X', 'connect', '1', '0', '0', '0'],
@@ -113,7 +121,10 @@ describe('parse', () => {
 
     describe('parse', () => {
         it('should parse simple patch', () => {
-            const pd = parse(TEST_PATCHES.simple)
+            const parseResult = parse(TEST_PATCHES.simple)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.strictEqual(Object.keys(pd.patches).length, 1)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
@@ -156,7 +167,10 @@ describe('parse', () => {
         })
 
         it('should parse objects and controls rightly', () => {
-            const pd = parse(TEST_PATCHES.nodeElems)
+            const parseResult = parse(TEST_PATCHES.nodeElems)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.strictEqual(Object.keys(pd.patches).length, 1)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]!
@@ -407,7 +421,10 @@ describe('parse', () => {
         })
 
         it('should parse arrays rightly', () => {
-            const pd = parse(TEST_PATCHES.arrays)
+            const parseResult = parse(TEST_PATCHES.arrays)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.deepStrictEqual(Object.keys(pd.patches), [
                 '0',
                 '1',
@@ -559,7 +576,10 @@ describe('parse', () => {
         })
 
         it('should parse tables rightly', () => {
-            const pd = parse(TEST_PATCHES.tables)
+            const parseResult = parse(TEST_PATCHES.tables)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
             assert.deepStrictEqual(Object.keys(pd.arrays), ['0'])
             const patch = pd.patches['0']!
@@ -656,7 +676,10 @@ describe('parse', () => {
         })
 
         it('should parse graphs rightly', () => {
-            const pd = parse(TEST_PATCHES.graphs)
+            const parseResult = parse(TEST_PATCHES.graphs)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.strictEqual(Object.keys(pd.patches).length, 2)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
@@ -712,7 +735,10 @@ describe('parse', () => {
         })
 
         it('should parse subpatches rightly', () => {
-            const pd = parse(TEST_PATCHES.subpatches)
+            const parseResult = parse(TEST_PATCHES.subpatches)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.strictEqual(Object.keys(pd.patches).length, 3)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]
@@ -879,7 +905,10 @@ describe('parse', () => {
         })
 
         it('should parse object size as saved in pd vanilla', () => {
-            const pd = parse(TEST_PATCHES.objectSizePdVanilla)
+            const parseResult = parse(TEST_PATCHES.objectSizePdVanilla)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             assert.strictEqual(Object.keys(pd.patches).length, 1)
             assert.strictEqual(Object.keys(pd.arrays).length, 0)
             const patch = pd.patches[0]!
@@ -895,8 +924,14 @@ describe('parse', () => {
         })
 
         it('should add inlets and outlets in layout order', () => {
-            const pd1 = parse(TEST_PATCHES.portletsOrder1)
-            const pd2 = parse(TEST_PATCHES.portletsOrder2)
+            const parseResult1 = parse(TEST_PATCHES.portletsOrder1)
+            assert.ok(parseResult1.code === 0)
+            const { pd: pd1 } = parseResult1
+
+            const parseResult2 = parse(TEST_PATCHES.portletsOrder2)
+            assert.ok(parseResult2.code === 0)
+            const { pd: pd2 } = parseResult2
+
             assert.deepStrictEqual(pd1.patches[1]!.inlets, ['0', '1'])
             assert.deepStrictEqual(pd1.patches[1]!.outlets, ['2', '3'])
             assert.deepStrictEqual(pd2.patches[3]!.inlets, ['1', '0'])
@@ -909,7 +944,10 @@ describe('parse', () => {
                 '#X obj 41 27 osc~ 220;\n' +
                 '#X obj 41 50 dac~;\n' +
                 '#X connect 0 0 1 0;'
-            const pd = parse(patchStr)
+            const parseResult = parse(patchStr)
+            assert.ok(parseResult.code === 0)
+            const { pd } = parseResult
+
             const patch = pd.patches[0]!
             assert.strictEqual(Object.keys(patch.nodes).length, 2)
             assert.strictEqual(patch.connections.length, 1)
@@ -921,9 +959,10 @@ describe('parse', () => {
                 '#X obj 14 13 loadbang;\n' +
                 '#X weirdElement 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;\n'
-            assert.throws(() => {
-                parse(patchStr)
-            })
+            const parseResult = parse(patchStr)
+            assert.ok(parseResult.code === 1)
+            const { errors } = parseResult
+            assert.strictEqual(errors.length, 1)
         })
 
         it('should fail with an unknown chunk', () => {
@@ -932,9 +971,29 @@ describe('parse', () => {
                 '#X obj 14 13 loadbang;\n' +
                 '#WEIRD dac~ 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;\n'
-            assert.throws(() => {
-                parse(patchStr)
-            })
+            const parseResult = parse(patchStr)
+            assert.ok(parseResult.code === 1)
+            const { errors } = parseResult
+            assert.strictEqual(errors.length, 1)
+        })
+
+        it('should return warnings when unsupported chunk', () => {
+            const pdWithUnsupportedChunks = 
+                '#N struct explode-template float x float y float velocity float channel\n' + 
+                'float duration;\n' + 
+                '#N canvas 520 35 639 570 10;\n' + 
+                '#X declare -path ./snd/Crop -path ./snd/Crop2-44.1;\n'
+
+            const parseResult = parse(pdWithUnsupportedChunks)
+            assert.ok(parseResult.code === 0)
+            const { warnings } = parseResult
+            assert.strictEqual(warnings.length, 2)
+
+            assert.strictEqual(warnings[0]!.lineIndex, 0)
+            assert.ok(warnings[0]!.message.includes('struct'))
+            
+            assert.strictEqual(warnings[1]!.lineIndex, 3)
+            assert.ok(warnings[1]!.message.includes('declare'))
         })
     })
 })

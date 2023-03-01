@@ -26,68 +26,90 @@ import { PdJson, CONTROL_TYPE } from './types'
 
 type PatchTokenizedLinesMap = { [globalId: string]: Array<TokenizedLine> }
 
+interface WarningOrError {
+    message: string
+
+    /** 0-indexed line index of where the error occurred */
+    lineIndex: number
+}
+
+const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
+
+export interface Compilation {
+    pd: PdJson.Pd
+    errors: Array<WarningOrError>,
+    warnings: Array<WarningOrError>,
+    tokenizedLines: Array<TokenizedLine>
+    patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> }
+}
+
+interface CompilationSuccess {
+    code: 0
+    warnings: Array<WarningOrError>
+    pd: PdJson.Pd
+}
+
+interface CompilationFailure {
+    code: 1
+    warnings: Array<WarningOrError>
+    errors: Array<WarningOrError>
+}
+
+type CompilationResult = CompilationSuccess | CompilationFailure
+
 export const nextPatchId = (): string => `${++nextPatchId.counter}`
 nextPatchId.counter = -1
 
 export const nextArrayId = (): string => `${++nextArrayId.counter}`
 nextArrayId.counter = -1
 
-const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
-
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
 
 /** Parses a Pd file, returns a simplified JSON version */
-export default (pdString: PdJson.PdString): PdJson.Pd => {
-    let pd: PdJson.Pd = {
-        patches: {},
-        arrays: {},
-    }
+export default (pdString: PdJson.PdString): CompilationResult => {
     let tokenizedLines = tokenize(pdString)
     let patchTokenizedLinesMap: PatchTokenizedLinesMap = {}
-    ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
-        pd,
-        true,
+    const c: Compilation = {
+        pd: {
+            patches: {},
+            arrays: {},
+        },
+        errors: [],
+        warnings: [],
         tokenizedLines,
-        patchTokenizedLinesMap
-    )
+        patchTokenizedLinesMap,
+    }
+    _parsePatches(c, true)
 
-    Object.values(pd.patches).forEach((patch) => {
-        let patchTokenizedLines = patchTokenizedLinesMap[patch.id]!
-        ;[pd, patchTokenizedLines] = parseArrays(pd, patchTokenizedLines)
-        ;[patch, patchTokenizedLines] = parseNodesAndConnections(
-            patch,
-            patchTokenizedLines
-        )
-        patch = _computePatchPortlets(patch)
-        if (patchTokenizedLines.length) {
-            throw new ParseError(
-                'invalid chunks ' +
-                    JSON.stringify(patchTokenizedLines, null, 2),
-                patchTokenizedLines[0]!.lineIndex
-            )
+    Object.keys(c.pd.patches).forEach((patchId) => {
+        _parseArrays(c, patchId)
+        _parseNodesAndConnections(c, patchId)
+        _computePatchPortlets(c, patchId)
+        if (c.patchTokenizedLinesMap[patchId]!.length) {
+            c.patchTokenizedLinesMap[patchId]!.forEach(({ tokens, lineIndex }) => {
+                c.errors.push({ message: `"${tokens[0]} ${tokens[1]}" unexpected chunk`, lineIndex })
+            })
         }
-        pd.patches[patch.id] = patch
     })
-    return pd
+
+    if (c.errors.length) {
+        return {
+            code: 1,
+            warnings: c.warnings,
+            errors: c.errors,
+        }
+        
+    } else {
+        return {
+            code: 0,
+            warnings: c.warnings,
+            pd: c.pd,
+        }
+    }
 }
 
-export const parsePatches = (
-    pd: PdJson.Pd,
-    isPatchRoot: boolean,
-    tokenizedLines: Array<TokenizedLine>,
-    patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> }
-): [
-    PdJson.Pd,
-    Array<TokenizedLine>,
-    { [globalId: string]: Array<TokenizedLine> }
-] => {
-    pd = {
-        patches: { ...pd.patches },
-        arrays: { ...pd.arrays },
-    }
-    tokenizedLines = [...tokenizedLines]
-    patchTokenizedLinesMap = { ...patchTokenizedLinesMap }
+export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
     const patchId = nextPatchId()
     const patchTokenizedLines: Array<TokenizedLine> = []
     let patchCanvasTokens: TokenizedLine | null = null
@@ -95,137 +117,82 @@ export const parsePatches = (
     let iterCounter = -1
     let continueIteration = true
 
-    while (tokenizedLines.length && continueIteration) {
-        const { tokens, lineIndex } = tokenizedLines[0]!
-        if (_tokensMatch(tokens, '#N', 'struct')) {
-            console.warn(`"#N struct" chunk is not supported`, lineIndex)
-            tokenizedLines.shift()!
-            continue
-        }
-
-        if (_tokensMatch(tokens, '#X', 'declare')) {
-            console.warn(`"#X declare" chunk is not supported`, lineIndex)
-            tokenizedLines.shift()!
-            continue
-        }
-
-        if (_tokensMatch(tokens, '#X', 'scalar')) {
-            console.warn(`"#X scalar" chunk is not supported`, lineIndex)
-            tokenizedLines.shift()!
-            continue
-        }
-
-        if (_tokensMatch(tokens, '#X', 'f')) {
-            console.warn(`"#X f" chunk is not supported`, lineIndex)
-            tokenizedLines.shift()!
+    while (c.tokenizedLines.length && continueIteration) {
+        const { tokens, lineIndex } = c.tokenizedLines[0]!
+        if (
+            _tokensMatch(tokens, '#N', 'struct')
+            || _tokensMatch(tokens, '#X', 'declare')
+            || _tokensMatch(tokens, '#X', 'scalar')
+            || _tokensMatch(tokens, '#X', 'f')
+        ) {
+            c.warnings.push({ message: `"${tokens[0]} ${tokens[1]}" chunk is not supported`, lineIndex })
+            c.tokenizedLines.shift()!
             continue
         }
 
         iterCounter++
-        catchParsingErrors(lineIndex, () => {
+        _catchParsingErrors(c, lineIndex, () => {
             // First line of the patch / subpatch, initializes the patch
             if (_tokensMatch(tokens, '#N', 'canvas') && iterCounter === 0) {
-                patchCanvasTokens = tokenizedLines.shift()!
+                patchCanvasTokens = c.tokenizedLines.shift()!
 
                 // If not first line, starts a subpatch
             } else if (_tokensMatch(tokens, '#N', 'canvas')) {
-                ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
-                    pd,
-                    false,
-                    tokenizedLines,
-                    patchTokenizedLinesMap
-                )
+                _parsePatches(c, false)
 
                 // Table : a table subpatch
                 // It seems that a table object is just a subpatch containing an array.
                 // Therefore we add some synthetic lines to the tokenized file to simulate
                 // this subpatch.
             } else if (
-                _tokensMatch(
-                    tokens,
-                    '#X',
-                    'obj',
-                    tokens[2]!,
-                    tokens[3]!,
-                    'table'
-                )
+                // prettier-ignore
+                _tokensMatch( tokens, '#X', 'obj', tokens[2]!, tokens[3]!, 'table')
             ) {
-                const tableTokens = tokenizedLines.shift()!.tokens
-                tokenizedLines = [
+                const tableTokens = c.tokenizedLines.shift()!.tokens
+                c.tokenizedLines = [
                     {
-                        tokens: [
-                            '#N',
-                            'canvas',
-                            '0',
-                            '0',
-                            '100',
-                            '100',
-                            '(subpatch)',
-                            '0',
-                        ],
+                        // prettier-ignore
+                        tokens: [ '#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'],
                         lineIndex,
                     },
                     {
-                        tokens: [
-                            '#N',
-                            'canvas',
-                            '0',
-                            '0',
-                            '100',
-                            '100',
-                            '(subpatch)',
-                            '0',
-                        ],
+                        // prettier-ignore
+                        tokens: [ '#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'],
                         lineIndex,
                     },
                     {
-                        tokens: [
-                            '#X',
-                            'array',
-                            tableTokens[5]!,
-                            tableTokens[6]!,
-                            'float',
-                            '0',
-                        ],
+                        // prettier-ignore
+                        tokens: [ '#X', 'array', tableTokens[5]!, tableTokens[6]!, 'float', '0'],
                         lineIndex,
                     },
+                    // prettier-ignore
                     { tokens: ['#X', 'restore', '0', '0', 'graph'], lineIndex },
                     {
-                        tokens: [
-                            '#X',
-                            'restore',
-                            tableTokens[2]!,
-                            tableTokens[3]!,
-                            'table',
-                        ],
+                        // prettier-ignore
+                        tokens: [ '#X', 'restore', tableTokens[2]!, tableTokens[3]!, 'table'],
                         lineIndex,
                     },
-                    ...tokenizedLines,
+                    ...c.tokenizedLines,
                 ]
-                ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
-                    pd,
-                    false,
-                    tokenizedLines,
-                    patchTokenizedLinesMap
-                )
+                _parsePatches(c, false)
 
                 // coords : visual range of framesets
             } else if (_tokensMatch(tokens, '#X', 'coords')) {
-                patchCoordsTokens = tokenizedLines.shift()!
+                patchCoordsTokens = c.tokenizedLines.shift()!
 
                 // Restore : ends a canvas definition
             } else if (_tokensMatch(tokens, '#X', 'restore')) {
                 // Creates a synthetic node that our parser will hydrate at a later stage
-                tokenizedLines[0]!.tokens = [
+                c.tokenizedLines[0]!.tokens = [
                     'PATCH',
                     patchId,
-                    ...tokenizedLines[0]!.tokens.slice(2),
+                    ...c.tokenizedLines[0]!.tokens.slice(2),
                 ]
                 continueIteration = false
 
                 // A normal chunk to add to the current patch
             } else {
-                patchTokenizedLines.push(tokenizedLines.shift()!)
+                patchTokenizedLines.push(c.tokenizedLines.shift()!)
             }
         })
     }
@@ -234,22 +201,21 @@ export const parsePatches = (
         throw new Error(`Parsing failed #canvas missing`)
     }
 
-    pd.patches[patchId] = hydratePatch(
+    c.pd.patches[patchId] = hydratePatch(
         patchId,
         isPatchRoot,
         patchCanvasTokens,
         patchCoordsTokens
     )
-    patchTokenizedLinesMap[patchId] = patchTokenizedLines
-
-    return [pd, tokenizedLines, patchTokenizedLinesMap]
+    c.patchTokenizedLinesMap[patchId] = patchTokenizedLines
 }
 
 /**
  * Use the layout of [inlet] / [outlet] objects to compute the order
  * of portlets of a subpatch.
  */
-const _computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
+const _computePatchPortlets = (c: Compilation, patchId: PdJson.GlobalId): void => {
+    const patch: PdJson.Patch = c.pd.patches[patchId]!
     const _comparePortletsId = (
         node1: PdJson.Node,
         node2: PdJson.Node
@@ -275,39 +241,35 @@ const _computePatchPortlets = (patch: PdJson.Patch): PdJson.Patch => {
         : _comparePortletsId
     outletNodes.sort(outletsSortFunction)
 
-    return {
+    c.pd.patches[patchId] = {
         ...patch,
         inlets: inletNodes.map((node) => node.id),
         outlets: outletNodes.map((node) => node.id),
     }
 }
 
-const parseArrays = (
-    pd: PdJson.Pd,
-    tokenizedLines: Array<TokenizedLine>
-): [PdJson.Pd, Array<TokenizedLine>] => {
-    pd = {
-        patches: { ...pd.patches },
-        arrays: { ...pd.arrays },
-    }
-    tokenizedLines = [...tokenizedLines]
+const _parseArrays = (
+    c: Compilation,
+    patchId: PdJson.GlobalId
+): void => {
+    const patchTokenizedLines = c.patchTokenizedLinesMap[patchId]!
     const remainingTokenizedLines: Array<TokenizedLine> = []
 
     // keep the last array for handling correctly
     // the array related instructions which might follow.
     let currentArray: PdJson.PdArray | null = null
 
-    while (tokenizedLines.length) {
-        const { tokens, lineIndex } = tokenizedLines[0]!
+    while (patchTokenizedLines.length) {
+        const { tokens, lineIndex } = patchTokenizedLines[0]!
 
-        catchParsingErrors(lineIndex, () => {
+        _catchParsingErrors(c, lineIndex, () => {
             // start of an array definition
             if (_tokensMatch(tokens, '#X', 'array')) {
                 currentArray = hydrateArray(
                     nextArrayId(),
-                    tokenizedLines.shift()!
+                    patchTokenizedLines.shift()!
                 )
-                pd.arrays[currentArray.id] = currentArray
+                c.pd.arrays[currentArray.id] = currentArray
                 // Creates a synthetic node that our parser will hydrate at a later stage
                 remainingTokenizedLines.push({
                     tokens: ['ARRAY', currentArray.id],
@@ -337,28 +299,23 @@ const parseArrays = (
                         currentData[indexOffset + i] = val
                     }
                 })
-                tokenizedLines.shift()
+                patchTokenizedLines.shift()
 
                 // A normal chunk to add to the current patch
             } else {
-                remainingTokenizedLines.push(tokenizedLines.shift()!)
+                remainingTokenizedLines.push(patchTokenizedLines.shift()!)
             }
         })
     }
-
-    return [pd, remainingTokenizedLines]
+    c.patchTokenizedLinesMap[patchId] = remainingTokenizedLines
 }
 
-const parseNodesAndConnections = (
-    patch: PdJson.Patch,
-    tokenizedLines: Array<TokenizedLine>
-): [PdJson.Patch, Array<TokenizedLine>] => {
-    patch = {
-        ...patch,
-        nodes: { ...patch.nodes },
-        connections: [...patch.connections],
-    }
-    tokenizedLines = [...tokenizedLines]
+const _parseNodesAndConnections = (
+    c: Compilation,
+    patchId: PdJson.GlobalId,
+): void => {
+    const patch = c.pd.patches[patchId]!
+    const patchTokenizedLines = c.patchTokenizedLinesMap[patchId]!
     const remainingTokenizedLines: Array<TokenizedLine> = []
 
     // In Pd files it seems like node ids are assigned in order in which nodes are declared.
@@ -366,19 +323,19 @@ const parseNodesAndConnections = (
     let idCounter = -1
     const nextId = (): string => `${++idCounter}`
 
-    while (tokenizedLines.length) {
-        const { tokens, lineIndex } = tokenizedLines[0]!
+    while (patchTokenizedLines.length) {
+        const { tokens, lineIndex } = patchTokenizedLines[0]!
 
-        catchParsingErrors(lineIndex, () => {
+        _catchParsingErrors(c, lineIndex, () => {
             let node: PdJson.Node | null = null
             if (_tokensMatch(tokens, 'PATCH')) {
-                node = hydrateNodePatch(nextId(), tokenizedLines.shift()!)
+                node = hydrateNodePatch(nextId(), patchTokenizedLines.shift()!)
             } else if (_tokensMatch(tokens, 'ARRAY')) {
-                node = hydrateNodeArray(nextId(), tokenizedLines.shift()!)
+                node = hydrateNodeArray(nextId(), patchTokenizedLines.shift()!)
             } else if (
                 NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
             ) {
-                const tokenizedLine = tokenizedLines.shift()!
+                const tokenizedLine = patchTokenizedLines.shift()!
                 const nodeBase = hydrateNodeBase(nextId(), tokenizedLine.tokens)
                 if (Object.keys(CONTROL_TYPE).includes(nodeBase.type)) {
                     node = hydrateNodeControl(nodeBase)
@@ -402,34 +359,24 @@ const parseNodesAndConnections = (
 
             if (_tokensMatch(tokens, '#X', 'connect')) {
                 patch.connections.push(
-                    hydrateConnection(tokenizedLines.shift()!)
+                    hydrateConnection(patchTokenizedLines.shift()!)
                 )
             } else {
-                remainingTokenizedLines.push(tokenizedLines.shift()!)
+                remainingTokenizedLines.push(patchTokenizedLines.shift()!)
             }
         })
     }
-
-    return [patch, remainingTokenizedLines]
+    c.patchTokenizedLinesMap[patchId] = remainingTokenizedLines
 }
 
-const catchParsingErrors = (lineIndex: number, func: () => void) => {
+const _catchParsingErrors = (c: Compilation, lineIndex: number, func: () => void) => {
     try {
         func()
     } catch (err) {
         if (err instanceof ValueError) {
-            throw new ParseError(err, lineIndex)
+            c.errors.push({ message: err.message, lineIndex })
         } else {
             throw err
         }
-    }
-}
-
-class ParseError extends Error {
-    /** 0-indexed line index of where the error occurred */
-    public lineIndex: number
-    constructor(error: Error | string, lineIndex: number) {
-        super(typeof error === 'string' ? error : error.message)
-        this.lineIndex = lineIndex
     }
 }
