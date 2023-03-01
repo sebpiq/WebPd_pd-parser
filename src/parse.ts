@@ -9,7 +9,6 @@
  *
  */
 
-import { CONTROL_TYPE, PdJson } from '@webpd/pd-json'
 import { parseFloatToken, ValueError } from './tokens'
 import {
     hydrateArray,
@@ -23,6 +22,7 @@ import {
     hydratePatch,
 } from './hydrate'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
+import { PdJson, CONTROL_TYPE } from './types'
 
 type PatchTokenizedLinesMap = { [globalId: string]: Array<TokenizedLine> }
 
@@ -152,12 +152,55 @@ export const parsePatches = (
             ) {
                 const tableTokens = tokenizedLines.shift()!.tokens
                 tokenizedLines = [
-                    { tokens: ['#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'], lineIndex },
-                    { tokens: ['#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'], lineIndex },
-                    { tokens: ['#X', 'array', tableTokens[5]!, tableTokens[6]!, 'float', '0'], lineIndex },
+                    {
+                        tokens: [
+                            '#N',
+                            'canvas',
+                            '0',
+                            '0',
+                            '100',
+                            '100',
+                            '(subpatch)',
+                            '0',
+                        ],
+                        lineIndex,
+                    },
+                    {
+                        tokens: [
+                            '#N',
+                            'canvas',
+                            '0',
+                            '0',
+                            '100',
+                            '100',
+                            '(subpatch)',
+                            '0',
+                        ],
+                        lineIndex,
+                    },
+                    {
+                        tokens: [
+                            '#X',
+                            'array',
+                            tableTokens[5]!,
+                            tableTokens[6]!,
+                            'float',
+                            '0',
+                        ],
+                        lineIndex,
+                    },
                     { tokens: ['#X', 'restore', '0', '0', 'graph'], lineIndex },
-                    { tokens: ['#X', 'restore', tableTokens[2]!, tableTokens[3]!, 'table'], lineIndex },
-                    ...tokenizedLines
+                    {
+                        tokens: [
+                            '#X',
+                            'restore',
+                            tableTokens[2]!,
+                            tableTokens[3]!,
+                            'table',
+                        ],
+                        lineIndex,
+                    },
+                    ...tokenizedLines,
                 ]
                 ;[pd, tokenizedLines, patchTokenizedLinesMap] = parsePatches(
                     pd,

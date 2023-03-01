@@ -28,7 +28,6 @@
     "@types/jest": "^27.5.1",
     "@types/node": "^13.9.3",
     "@webpd/dev": "file:../WebPd_dev",
-    "@webpd/pd-json": "file:../WebPd_pd-json",
     "jest": "^28.1.0",
     "ts-jest": "^28.0.3"
   }

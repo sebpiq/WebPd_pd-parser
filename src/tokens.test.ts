@@ -9,7 +9,6 @@
  *
  */
 
-import { PdJson } from '@webpd/pd-json'
 import assert from 'assert'
 import {
     parseBoolToken,
@@ -18,6 +17,7 @@ import {
     parseStringToken,
     ValueError,
 } from './tokens'
+import { PdJson } from './types'
 
 describe('tokens', () => {
     describe('parseStringToken', () => {

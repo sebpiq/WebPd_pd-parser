@@ -9,7 +9,7 @@
  *
  */
 
-import { PdJson } from '@webpd/pd-json'
+import { PdJson } from './types'
 
 export type Tokens = Array<string>
 
@@ -22,7 +22,8 @@ export interface TokenizedLine {
 // Regular expression to split tokens in a message.
 // For groups 'semi' and 'colon', we capture as a separator only unescaped characters.
 // A separator can be e.g. : " ,  " or "; "
-export const TOKENS_RE = /(?<comma>((?<!\\)\s*)((?<!\\\\)\\,)((?<!\\)\s*))|(?<semi>((?<!\\)\s*)((?<!\\\\)\\;)((?<!\\)\s*))|((?<!\\)\s)+|\r\n?|\n/
+export const TOKENS_RE =
+    /(?<comma>((?<!\\)\s*)((?<!\\\\)\\,)((?<!\\)\s*))|(?<semi>((?<!\\)\s*)((?<!\\\\)\\;)((?<!\\)\s*))|((?<!\\)\s)+|\r\n?|\n/
 export const AFTER_COMMA_RE = /,(?!\\)/
 
 // Regular expression for finding valid lines of Pd in a file
@@ -48,14 +49,15 @@ export default (pdString: PdJson.PdString): Array<TokenizedLine> => {
             .reverse()
             .map(_reverseString)
 
-        const lineIndex = pdString.slice(0, lineMatch.index).split('\n').length - 1
+        const lineIndex =
+            pdString.slice(0, lineMatch.index).split('\n').length - 1
 
         tokenizedLines.push({
             tokens: tokenizeLine(lineParts[0]!),
             lineAfterComma: lineParts[1]
                 ? tokenizeLine(lineParts[1])
                 : undefined,
-            lineIndex
+            lineIndex,
         })
     }
 

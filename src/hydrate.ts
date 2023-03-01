@@ -9,9 +9,15 @@
  *
  */
 
-import { PdJson } from '@webpd/pd-json'
-import { parseBoolToken, parseFloatToken, parseArg, parseStringToken, parseIntToken } from './tokens'
+import {
+    parseBoolToken,
+    parseFloatToken,
+    parseArg,
+    parseStringToken,
+    parseIntToken,
+} from './tokens'
 import { TokenizedLine, Tokens } from './tokenize'
+import { PdJson } from './types'
 
 /**
  * @param coordsTokenizedLine Defined only if the patch declares a graph on its parent,
@@ -24,7 +30,7 @@ export const hydratePatch = (
     coordsTokenizedLine: TokenizedLine | null
 ): PdJson.Patch => {
     const { tokens: canvasTokens } = canvasTokenizedLine
-    const coordsTokens = coordsTokenizedLine ? coordsTokenizedLine.tokens: null
+    const coordsTokens = coordsTokenizedLine ? coordsTokenizedLine.tokens : null
 
     let layout: PdJson.Patch['layout'] = {
         windowX: parseIntToken(canvasTokens[2]),
@@ -41,9 +47,11 @@ export const hydratePatch = (
         if (layout.graphOnParent === 1) {
             layout = {
                 ...layout,
-                hideObjectNameAndArguments: graphOnParentRaw === 2 ? 1: 0,
+                hideObjectNameAndArguments: graphOnParentRaw === 2 ? 1 : 0,
                 viewportX: coordsTokens[9] ? parseIntToken(coordsTokens[9]) : 0,
-                viewportY: coordsTokens[10] ? parseIntToken(coordsTokens[10]) : 0,
+                viewportY: coordsTokens[10]
+                    ? parseIntToken(coordsTokens[10])
+                    : 0,
                 viewportWidth: parseIntToken(coordsTokens[6]),
                 viewportHeight: parseIntToken(coordsTokens[7]),
             }
@@ -91,7 +99,11 @@ export const hydrateNodePatch = (
     const canvasType = tokens[4]
     const args: PdJson.NodeArgs = []
 
-    if (canvasType !== 'pd' && canvasType !== 'graph' && canvasType !== 'table') {
+    if (
+        canvasType !== 'pd' &&
+        canvasType !== 'graph' &&
+        canvasType !== 'table'
+    ) {
         throw new Error(`unknown canvasType : ${canvasType}`)
     }
 
@@ -194,7 +206,11 @@ export const hydrateNodeControl = (
         nodeClass: 'control',
     } as PdJson.ControlNode
 
-    if (node.type === 'floatatom' || node.type === 'symbolatom' || node.type === 'listbox') {
+    if (
+        node.type === 'floatatom' ||
+        node.type === 'symbolatom' ||
+        node.type === 'listbox'
+    ) {
         // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
         node.layout = {
             ...node.layout,
@@ -209,10 +225,9 @@ export const hydrateNodeControl = (
             parseStringToken(args[6], '-'),
         ]
 
-    // In Pd `msg` is actually more handled like a standard object, even though it is a control.
+        // In Pd `msg` is actually more handled like a standard object, even though it is a control.
     } else if (node.type === 'msg') {
         node.args = node.args.map(parseArg)
-
     } else if (node.type === 'bng') {
         // <size> <hold> <interrupt> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color>
         node.layout = {
@@ -362,7 +377,10 @@ export const hydrateNodeControl = (
             labelColor: args[9],
             log: parseFloatToken(args[10]),
         }
-        node.args = [parseStringToken(args[2], 'empty'), parseStringToken(args[11])]
+        node.args = [
+            parseStringToken(args[2], 'empty'),
+            parseStringToken(args[11]),
+        ]
     } else if (node.type === 'cnv') {
         // <size> <width> <height> <send> <receive> <label> <x_off> <y_off> <font> <font_size> <bg_color> <label_color> <?>
         node.layout = {
@@ -380,8 +398,8 @@ export const hydrateNodeControl = (
         }
         node.args = [
             parseStringToken(args[4], 'empty'),
-            parseStringToken(args[3], 'empty'), 
-            parseStringToken(args[12])
+            parseStringToken(args[3], 'empty'),
+            parseStringToken(args[12]),
         ]
     } else {
         throw new Error(`Unexpected control node ${node.type}`)

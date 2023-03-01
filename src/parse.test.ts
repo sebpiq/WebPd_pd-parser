@@ -12,8 +12,8 @@
 import assert from 'assert'
 import parse, { parsePatches, nextPatchId, nextArrayId } from './parse'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
-import TEST_PATCHES from '@webpd/pd-json/test-patches'
-import { PdJson } from '@webpd/pd-json'
+import TEST_PATCHES from '../test-patches'
+import { PdJson } from './types'
 
 export const round = (v: number, decimals: number = 4) => {
     const rounded =
@@ -87,7 +87,7 @@ describe('parse', () => {
                 ['#X', 'connect', '0', '0', '1', '0'],
                 ['#X', 'connect', '2', '0', '3', '0'],
             ])
-            
+
             // sub-subpatch
             assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[2]!.layout, {
                 openOnLoad: 1,
@@ -560,11 +560,7 @@ describe('parse', () => {
 
         it('should parse tables rightly', () => {
             const pd = parse(TEST_PATCHES.tables)
-            assert.deepStrictEqual(Object.keys(pd.patches), [
-                '0',
-                '1',
-                '2',
-            ])
+            assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
             assert.deepStrictEqual(Object.keys(pd.arrays), ['0'])
             const patch = pd.patches['0']!
             const graphSubpatch = pd.patches['1']!
@@ -618,7 +614,7 @@ describe('parse', () => {
                         layout: {
                             x: 0,
                             y: 0,
-                        }
+                        },
                     },
                 },
                 connections: [],
@@ -651,15 +647,12 @@ describe('parse', () => {
                 outlets: [],
             })
 
-            assert.deepStrictEqual<PdJson.PdArray>(
-                array,
-                {
-                    id: '0',
-                    args: ['myTable', 35, 0],
-                    layout: { drawAs: 'polygon' },
-                    data: null,
-                }
-            )
+            assert.deepStrictEqual<PdJson.PdArray>(array, {
+                id: '0',
+                args: ['myTable', 35, 0],
+                layout: { drawAs: 'polygon' },
+                data: null,
+            })
         })
 
         it('should parse graphs rightly', () => {

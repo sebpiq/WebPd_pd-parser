@@ -9,7 +9,7 @@
  *
  */
 
-import { PdJson } from '@webpd/pd-json'
+import { PdJson } from './types'
 
 // Regular expressions to detect escaped special chars.
 const ESCAPED_DOLLAR_VAR_RE_GLOB = /\\(\$\d+)/g
@@ -21,7 +21,9 @@ const ESCAPED_SEMICOLON_VAR_RE_GLOB = /\\\\\\;/g
  * Needs to handle the case when the token is already a number as in the process of gathering
  * arguments we sometimes insert a number.
  */
-export const parseArg = (rawArg: PdJson.NodeArg | undefined): NonNullable<PdJson.NodeArg> => {
+export const parseArg = (
+    rawArg: PdJson.NodeArg | undefined
+): NonNullable<PdJson.NodeArg> => {
     // Try to parse arg as a number
     try {
         return parseFloatToken(rawArg)
@@ -48,7 +50,7 @@ export const parseFloatToken = (val: PdJson.NodeArg | undefined): number => {
     if (isNumber(val)) {
         return val
     } else if (isString(val)) {
-        // `Number` is better than `parseFloat` for example 
+        // `Number` is better than `parseFloat` for example
         // which is too flexible.
         // REF : https://stackoverflow.com/questions/3257112/is-it-possible-to-parsefloat-the-whole-string
         const parsed = Number(val)
@@ -83,7 +85,10 @@ export const parseBoolToken = (val: PdJson.NodeArg | undefined): 0 | 1 => {
 }
 
 /** Unescape string args. */
-export const parseStringToken = (val: PdJson.NodeArg | undefined, emptyValue: string | null = null): string => {
+export const parseStringToken = (
+    val: PdJson.NodeArg | undefined,
+    emptyValue: string | null = null
+): string => {
     if (!isString(val)) {
         throw new ValueError(`Not a valid string arg ${val}`)
     }

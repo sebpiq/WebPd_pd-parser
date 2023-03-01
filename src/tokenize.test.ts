@@ -11,10 +11,9 @@
 
 import assert from 'assert'
 import tokenize, { tokenizeLine } from './tokenize'
-import TEST_PATCHES from '@webpd/pd-json/test-patches'
+import TEST_PATCHES from '../test-patches'
 
 describe('tokenize', () => {
-
     describe('default', () => {
         it('should tokenize correctly a simple patch', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.simple)
@@ -41,7 +40,7 @@ describe('tokenize', () => {
                 },
             ])
         })
-    
+
         it('should tokenize correctly a message with special characters', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.messageCommaSemicolon)
             assert.deepStrictEqual(tokenizedLines[1], {
@@ -77,11 +76,11 @@ describe('tokenize', () => {
     describe('tokenizeLine', () => {
         it('should not cut escaped spaces, colons or commas', () => {
             assert.deepStrictEqual(
-                tokenizeLine('#X msg 225 510 list bla\\ poi'), 
+                tokenizeLine('#X msg 225 510 list bla\\ poi'),
                 ['#X', 'msg', '225', '510', 'list', 'bla\\ poi']
             )
             assert.deepStrictEqual(
-                tokenizeLine('#X msg 225 510 list bla\\\\\\,poi'), 
+                tokenizeLine('#X msg 225 510 list bla\\\\\\,poi'),
                 ['#X', 'msg', '225', '510', 'list', 'bla\\\\\\,poi']
             )
             assert.deepStrictEqual(
