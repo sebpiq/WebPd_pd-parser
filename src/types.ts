@@ -229,7 +229,8 @@ export declare module PdJson {
     // ------------------- Specific types for controls ------------------- //
 
     interface AtomLayout extends BaseNodeLayoutPosition {
-        width?: number
+        /** Width given in number of characters that fit horizontally in the box */
+        widthInChars?: number
         label?: string
         labelPos?: number
     }
@@ -291,7 +292,8 @@ export declare module PdJson {
     }
 
     interface NumberBoxLayout extends BaseNodeLayoutPosition {
-        widthDigits?: number
+        /** Width given in number of characters that fit horizontally in the box */
+        widthInChars?: number
         height?: number
         log?: number
         label?: string

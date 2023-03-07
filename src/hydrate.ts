@@ -211,10 +211,10 @@ export const hydrateNodeControl = (
         node.type === 'symbolatom' ||
         node.type === 'listbox'
     ) {
-        // <width> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
+        // <widthInChars> <lower_limit> <upper_limit> <label_pos> <label> <receive> <send>
         node.layout = {
             ...node.layout,
-            width: parseFloatToken(args[0]),
+            widthInChars: parseFloatToken(args[0]),
             labelPos: parseFloatToken(args[3]),
             label: parseStringToken(args[4], '-'),
         }
@@ -275,7 +275,7 @@ export const hydrateNodeControl = (
         // <size> <height> <min> <max> <log> <init> <send> <receive> <label> <x_off> <y_off> <font> <fontsize> <bg_color> <fg_color> <label_color> <log_height>
         node.layout = {
             ...node.layout,
-            widthDigits: parseFloatToken(args[0]),
+            widthInChars: parseFloatToken(args[0]),
             height: parseFloatToken(args[1]),
             log: parseFloatToken(args[4]),
             label: parseStringToken(args[8], 'empty'),

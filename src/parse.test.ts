@@ -122,7 +122,7 @@ describe('parse', () => {
     describe('parse', () => {
         it('should parse simple patch', () => {
             const parseResult = parse(TEST_PATCHES.simple)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.strictEqual(Object.keys(pd.patches).length, 1)
@@ -168,7 +168,7 @@ describe('parse', () => {
 
         it('should parse objects and controls rightly', () => {
             const parseResult = parse(TEST_PATCHES.nodeElems)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.strictEqual(Object.keys(pd.patches).length, 1)
@@ -183,7 +183,7 @@ describe('parse', () => {
                 layout: {
                     x: 73,
                     y: 84,
-                    width: 5,
+                    widthInChars: 5,
                     labelPos: 0,
                     label: '',
                 },
@@ -247,7 +247,7 @@ describe('parse', () => {
                 layout: {
                     x: 180,
                     y: 42,
-                    widthDigits: 5,
+                    widthInChars: 5,
                     height: 14,
                     log: 0,
                     label: '',
@@ -352,7 +352,7 @@ describe('parse', () => {
                 type: 'symbolatom',
                 nodeClass: 'control',
                 args: [0, 0, 'symbolatomRcvBla', 'symbolatomSndBla'],
-                layout: { x: 255, y: 38, width: 10, labelPos: 0, label: '' },
+                layout: { x: 255, y: 38, widthInChars: 10, labelPos: 0, label: '' },
             })
 
             assert.deepStrictEqual<PdJson.SliderNode>(patch.nodes[10], {
@@ -411,7 +411,7 @@ describe('parse', () => {
                 type: 'listbox',
                 nodeClass: 'control',
                 args: [0, 0, 'listboxRcvBla', 'listboxSndBla'],
-                layout: { x: 329, y: 26, width: 20, labelPos: 0, label: '' },
+                layout: { x: 329, y: 26, widthInChars: 20, labelPos: 0, label: '' },
             })
 
             assert.deepStrictEqual<Array<PdJson.Connection>>(
@@ -422,7 +422,7 @@ describe('parse', () => {
 
         it('should parse arrays rightly', () => {
             const parseResult = parse(TEST_PATCHES.arrays)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.deepStrictEqual(Object.keys(pd.patches), [
@@ -577,7 +577,7 @@ describe('parse', () => {
 
         it('should parse tables rightly', () => {
             const parseResult = parse(TEST_PATCHES.tables)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
@@ -677,7 +677,7 @@ describe('parse', () => {
 
         it('should parse graphs rightly', () => {
             const parseResult = parse(TEST_PATCHES.graphs)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.strictEqual(Object.keys(pd.patches).length, 2)
@@ -736,7 +736,7 @@ describe('parse', () => {
 
         it('should parse subpatches rightly', () => {
             const parseResult = parse(TEST_PATCHES.subpatches)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.strictEqual(Object.keys(pd.patches).length, 3)
@@ -906,7 +906,7 @@ describe('parse', () => {
 
         it('should parse object size as saved in pd vanilla', () => {
             const parseResult = parse(TEST_PATCHES.objectSizePdVanilla)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             assert.strictEqual(Object.keys(pd.patches).length, 1)
@@ -925,11 +925,11 @@ describe('parse', () => {
 
         it('should add inlets and outlets in layout order', () => {
             const parseResult1 = parse(TEST_PATCHES.portletsOrder1)
-            assert.ok(parseResult1.code === 0)
+            assert.ok(parseResult1.status === 0)
             const { pd: pd1 } = parseResult1
 
             const parseResult2 = parse(TEST_PATCHES.portletsOrder2)
-            assert.ok(parseResult2.code === 0)
+            assert.ok(parseResult2.status === 0)
             const { pd: pd2 } = parseResult2
 
             assert.deepStrictEqual(pd1.patches[1]!.inlets, ['0', '1'])
@@ -945,7 +945,7 @@ describe('parse', () => {
                 '#X obj 41 50 dac~;\n' +
                 '#X connect 0 0 1 0;'
             const parseResult = parse(patchStr)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
             const patch = pd.patches[0]!
@@ -960,7 +960,7 @@ describe('parse', () => {
                 '#X weirdElement 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;\n'
             const parseResult = parse(patchStr)
-            assert.ok(parseResult.code === 1)
+            assert.ok(parseResult.status === 1)
             const { errors } = parseResult
             assert.strictEqual(errors.length, 1)
         })
@@ -972,7 +972,7 @@ describe('parse', () => {
                 '#WEIRD dac~ 14 34 dac~;\n' +
                 '#X connect 0 0 1 0;\n'
             const parseResult = parse(patchStr)
-            assert.ok(parseResult.code === 1)
+            assert.ok(parseResult.status === 1)
             const { errors } = parseResult
             assert.strictEqual(errors.length, 1)
         })
@@ -985,7 +985,7 @@ describe('parse', () => {
                 '#X declare -path ./snd/Crop -path ./snd/Crop2-44.1;\n'
 
             const parseResult = parse(pdWithUnsupportedChunks)
-            assert.ok(parseResult.code === 0)
+            assert.ok(parseResult.status === 0)
             const { warnings } = parseResult
             assert.strictEqual(warnings.length, 2)
 

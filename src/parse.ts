@@ -44,13 +44,13 @@ export interface Compilation {
 }
 
 interface CompilationSuccess {
-    code: 0
+    status: 0
     warnings: Array<WarningOrError>
     pd: PdJson.Pd
 }
 
 interface CompilationFailure {
-    code: 1
+    status: 1
     warnings: Array<WarningOrError>
     errors: Array<WarningOrError>
 }
@@ -95,14 +95,14 @@ export default (pdString: PdJson.PdString): CompilationResult => {
 
     if (c.errors.length) {
         return {
-            code: 1,
+            status: 1,
             warnings: c.warnings,
             errors: c.errors,
         }
         
     } else {
         return {
-            code: 0,
+            status: 0,
             warnings: c.warnings,
             pd: c.pd,
         }
@@ -116,9 +116,11 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
     let patchCoordsTokens: TokenizedLine | null = null
     let iterCounter = -1
     let continueIteration = true
+    let firstLineIndex = c.tokenizedLines[0] ? c.tokenizedLines[0].lineIndex: -1
 
     while (c.tokenizedLines.length && continueIteration) {
         const { tokens, lineIndex } = c.tokenizedLines[0]!
+
         if (
             _tokensMatch(tokens, '#N', 'struct')
             || _tokensMatch(tokens, '#X', 'declare')
@@ -198,7 +200,8 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
     }
 
     if (patchCanvasTokens === null) {
-        throw new Error(`Parsing failed #canvas missing`)
+        c.errors.push({ message: `Parsing failed #canvas missing`, lineIndex: firstLineIndex })
+        return
     }
 
     c.pd.patches[patchId] = hydratePatch(
