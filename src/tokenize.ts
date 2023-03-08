@@ -20,8 +20,11 @@ export interface TokenizedLine {
 }
 
 // Regular expression to split tokens in a message.
-// For groups 'semi' and 'colon', we capture as a separator only unescaped characters.
+// For groups 1 (captures semicolon) and group 5 (captures comma), we capture as a separator 
+// only unescaped characters.
 // A separator can be e.g. : " ,  " or "; "
+// NOTE: Normally we'd use named regexp capturing groups, but that causes problems with 
+// create-react-app which uses a babel plugin to remove them.
 export const TOKENS_RE =
     /(?<comma>((?<!\\)\s*)((?<!\\\\)\\,)((?<!\\)\s*))|(?<semi>((?<!\\)\s*)((?<!\\\\)\\;)((?<!\\)\s*))|((?<!\\)\s)+|\r\n?|\n/
 export const AFTER_COMMA_RE = /,(?!\\)/
@@ -76,9 +79,9 @@ export const tokenizeLine = (line: string): Tokens => {
             tokens.push(token)
         }
 
-        if (match.groups!['comma']) {
+        if (match[1]) {
             tokens.push(',')
-        } else if (match.groups!['semi']) {
+        } else if (match[5]) {
             tokens.push(';')
         }
     })

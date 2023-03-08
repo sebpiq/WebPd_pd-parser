@@ -26,7 +26,7 @@ import { PdJson, CONTROL_TYPE } from './types'
 
 type PatchTokenizedLinesMap = { [globalId: string]: Array<TokenizedLine> }
 
-interface WarningOrError {
+export interface ParsingWarningOrError {
     message: string
 
     /** 0-indexed line index of where the error occurred */
@@ -37,22 +37,22 @@ const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
 
 export interface Compilation {
     pd: PdJson.Pd
-    errors: Array<WarningOrError>,
-    warnings: Array<WarningOrError>,
+    errors: Array<ParsingWarningOrError>,
+    warnings: Array<ParsingWarningOrError>,
     tokenizedLines: Array<TokenizedLine>
     patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> }
 }
 
 interface CompilationSuccess {
     status: 0
-    warnings: Array<WarningOrError>
+    warnings: Array<ParsingWarningOrError>
     pd: PdJson.Pd
 }
 
 interface CompilationFailure {
     status: 1
-    warnings: Array<WarningOrError>
-    errors: Array<WarningOrError>
+    warnings: Array<ParsingWarningOrError>
+    errors: Array<ParsingWarningOrError>
 }
 
 type CompilationResult = CompilationSuccess | CompilationFailure
