@@ -10,7 +10,7 @@
  */
 
 import assert from 'assert'
-import parse, { _parsePatches, nextPatchId, nextArrayId, Compilation } from './parse'
+import parse, { _parsePatches, nextPatchId, nextArrayId, Compilation, DEFAULT_ARRAY_SIZE } from './parse'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 import TEST_PATCHES from '../test-patches'
 import { PdJson } from './types'
@@ -994,6 +994,28 @@ describe('parse', () => {
             
             assert.strictEqual(warnings[1]!.lineIndex, 3)
             assert.ok(warnings[1]!.message.includes('declare'))
+        })
+
+        it('should support parsing simple table without size', () => {
+            const pdTableWithoutSize = 
+                '#N canvas 0 0 450 300 12;\n'
+                + '#X obj 139 82 table BLA;\n'
+
+            const parseResult = parse(pdTableWithoutSize)
+            assert.ok(parseResult.status === 0)
+            const pd = parseResult.pd
+            console.log(pd)
+            assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
+
+            const arrayNode = pd.patches['2']!.nodes['0']!
+            assert.ok(arrayNode.nodeClass === 'array')
+            assert.deepStrictEqual(arrayNode.type, 'array')
+            assert.deepStrictEqual(arrayNode.arrayId, '0')
+
+            assert.deepStrictEqual(Object.keys(pd.arrays), ['0'])
+            const array = pd.arrays['0']!
+            assert.deepStrictEqual(array.args, ['BLA', DEFAULT_ARRAY_SIZE, 0])
+            assert.deepStrictEqual(array.data, null)
         })
     })
 })

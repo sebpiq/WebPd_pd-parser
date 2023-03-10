@@ -9,7 +9,7 @@
  *
  */
 
-import { parseFloatToken, ValueError } from './tokens'
+import { parseFloatToken, parseStringToken, ValueError } from './tokens'
 import {
     hydrateArray,
     hydrateConnection,
@@ -32,6 +32,8 @@ export interface ParsingWarningOrError {
     /** 0-indexed line index of where the error occurred */
     lineIndex: number
 }
+
+export const DEFAULT_ARRAY_SIZE = 100
 
 const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
 
@@ -164,7 +166,7 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
                     },
                     {
                         // prettier-ignore
-                        tokens: [ '#X', 'array', tableTokens[5]!, tableTokens[6]!, 'float', '0'],
+                        tokens: [ '#X', 'array', parseStringToken(tableTokens[5]), tableTokens[6] || DEFAULT_ARRAY_SIZE.toString(), 'float', '0'],
                         lineIndex,
                     },
                     // prettier-ignore
