@@ -1,7 +1,7 @@
-See http://puredata.info/docs/developer/PdFileFormat for the Pd file format reference.
+# WebPd pd-parser
 
+More docs coming here soon ... 
 
-TODO
------
+Meanwhile you can go back there : https://github.com/sebpiq/WebPd
 
-Make sure connexion are in right order, according to node X
+See http://puredata.info/docs/developer/PdFileFormat for (incomplete and outdated) Pd file format reference.

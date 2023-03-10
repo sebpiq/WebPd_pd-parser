@@ -1,7 +1,7 @@
 {
   "name": "@webpd/pd-parser",
   "version": "0.1.0",
-  "description": "Parses Pd file format to JavaScript / TypeScript following the PdJson specification",
+  "description": "Parses Pd file format to PdJson",
   "main": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
   "type": "module",
@@ -17,7 +17,7 @@
     "url": "git+https://github.com/sebpiq/WebPd_pd-parser.git"
   },
   "author": "Sébastien Piquemal",
-  "license": "BSD-2-Clause",
+  "license": "LGPL-3.0",
   "bugs": {
     "url": "https://github.com/sebpiq/WebPd_pd-parser/issues"
   },
