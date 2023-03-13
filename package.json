@@ -1,34 +1,33 @@
 {
-  "name": "@webpd/pd-parser",
-  "version": "0.1.0",
-  "description": "Parses Pd file format to PdJson",
-  "main": "./dist/index.js",
-  "types": "./dist/types/index.d.ts",
-  "type": "module",
-  "scripts": {
-    "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --config node_modules/@webpd/dev/configs/jest.js",
-    "rollup": "npx rollup --config node_modules/@webpd/dev/configs/rollup.mjs",
-    "prettier": "npm explore @webpd/dev -- npm run prettier $(pwd)/src",
-    "eslint": "npm explore @webpd/dev -- npm run eslint $(pwd)/src",
-    "all": "npm run test-bail && npm run prettier && npm run eslint"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sebpiq/WebPd_pd-parser.git"
-  },
-  "author": "Sébastien Piquemal",
-  "license": "LGPL-3.0",
-  "bugs": {
-    "url": "https://github.com/sebpiq/WebPd_pd-parser/issues"
-  },
-  "homepage": "https://github.com/sebpiq/WebPd_pd-parser#readme",
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-typescript": "^8.3.2",
-    "@types/jest": "^29.4.0",
-    "@types/node": "^13.9.3",
-    "@webpd/dev": "file:../WebPd_dev",
-    "jest": "^29.4.3",
-    "ts-jest": "^29.0.5"
-  }
+    "name": "@webpd/pd-parser",
+    "version": "0.1.0",
+    "description": "Parses Pd file format to PdJson",
+    "main": "./dist/index.js",
+    "types": "./dist/types/index.d.ts",
+    "type": "module",
+    "license": "LGPL-3.0",
+    "author": "Sébastien Piquemal",
+    "scripts": {
+        "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --config node_modules/@webpd/dev/configs/jest.js",
+        "build:dist": "npx rollup --config node_modules/@webpd/dev/configs/rollup.mjs",
+        "prettier": "npm explore @webpd/dev -- npm run prettier $(pwd)/src",
+        "eslint": "npm explore @webpd/dev -- npm run eslint $(pwd)/src"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sebpiq/WebPd_pd-parser.git"
+    },
+    "bugs": {
+        "url": "https://github.com/sebpiq/WebPd_pd-parser/issues"
+    },
+    "homepage": "https://github.com/sebpiq/WebPd_pd-parser#readme",
+    "devDependencies": {
+        "@rollup/plugin-node-resolve": "^13.3.0",
+        "@rollup/plugin-typescript": "^8.3.2",
+        "@types/jest": "^29.4.0",
+        "@types/node": "^13.9.3",
+        "@webpd/dev": "file:../WebPd_dev",
+        "jest": "^29.4.3",
+        "ts-jest": "^29.0.5"
+    }
 }

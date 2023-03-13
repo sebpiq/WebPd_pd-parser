@@ -55,7 +55,7 @@ describe('parse', () => {
     describe('_parsePatches', () => {
         it('should extract nested subpatches', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
-            const emptyPd: PdJson.Pd = { patches: {}, arrays: {} }
+            const emptyPd: PdJson.Pd = { patches: {}, arrays: {}, rootPatchId: '0' }
             const compilation: Compilation = {
                 pd: emptyPd,
                 patchTokenizedLinesMap: {},
@@ -1013,7 +1013,6 @@ describe('parse', () => {
             const parseResult = parse(pdTableWithoutSize)
             assert.ok(parseResult.status === 0)
             const pd = parseResult.pd
-            console.log(pd)
             assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
 
             const arrayNode = pd.patches['2']!.nodes['0']!

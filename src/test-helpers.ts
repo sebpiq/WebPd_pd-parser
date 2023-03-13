@@ -39,11 +39,13 @@ type ConciseArray = Partial<PdJson.PdArray>
 type ConcisePd = {
     patches: { [patchId: string]: ConcisePatch }
     arrays?: { [arrayId: string]: ConciseArray }
+    rootPatchId?: PdJson.GlobalId
 }
 
 export const pdJsonDefaults = (): PdJson.Pd => ({
     patches: {},
     arrays: {},
+    rootPatchId: '0',
 })
 
 export const pdJsonArrayDefaults = (id: PdJson.GlobalId): PdJson.PdArray => ({
@@ -119,6 +121,10 @@ export const makePd = (concisePd: ConcisePd): PdJson.Pd => {
                 ...conciseArray,
             }
         })
+    }
+
+    if (concisePd.rootPatchId !== undefined) {
+        pd.rootPatchId = concisePd.rootPatchId
     }
 
     return pd

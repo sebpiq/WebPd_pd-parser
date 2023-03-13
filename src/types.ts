@@ -243,6 +243,7 @@ export declare module PdJson {
     interface Pd {
         patches: { [globalId: string]: Patch }
         arrays: { [globalId: string]: PdArray }
+        rootPatchId: GlobalId
     }
 
     // ------------------- Specific types for controls ------------------- //

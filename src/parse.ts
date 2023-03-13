@@ -83,6 +83,7 @@ export default (pdString: PdJson.PdString): CompilationResult => {
     let patchTokenizedLinesMap: PatchTokenizedLinesMap = {}
     const c: Compilation = {
         pd: {
+            rootPatchId: '0',
             patches: {},
             arrays: {},
         },
@@ -213,6 +214,10 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
     if (patchCanvasTokens === null) {
         c.errors.push({ message: `Parsing failed #canvas missing`, lineIndex: firstLineIndex })
         return
+    }
+
+    if (isPatchRoot) {
+        c.pd.rootPatchId = patchId
     }
 
     c.pd.patches[patchId] = hydratePatch(
