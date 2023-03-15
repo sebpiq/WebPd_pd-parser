@@ -299,7 +299,7 @@ const _parseArrays = (
                 // array data to add to the current array
             } else if (_tokensMatch(tokens, '#A')) {
                 if (!currentArray) {
-                    throw new Error('got array data outside of a array.')
+                    throw new Error(`line ${lineIndex}: Unsupported data chunk #A.`)
                 }
                 if (currentArray.args[2] === 0) {
                     throw new Error(
