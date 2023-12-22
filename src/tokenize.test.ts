@@ -20,7 +20,7 @@
 
 import assert from 'assert'
 import tokenize, { tokenizeLine } from './tokenize'
-import TEST_PATCHES from '../test-patches'
+import TEST_PATCHES from './test-patches'
 
 describe('tokenize', () => {
     describe('default', () => {

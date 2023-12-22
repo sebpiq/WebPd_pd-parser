@@ -21,7 +21,7 @@
 import assert from 'assert'
 import parse, { _parsePatches, nextPatchId, nextArrayId, Compilation, DEFAULT_ARRAY_SIZE } from './parse'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
-import TEST_PATCHES from '../test-patches'
+import TEST_PATCHES from './test-patches'
 import { PdJson } from './types'
 
 export const round = (v: number, decimals: number = 4) => {
