@@ -96,7 +96,10 @@ export const tokenizeLine = (line: string): Tokens => {
     })
     const lastMatch = matches.slice(-1)[0]
     if (lastMatch) {
-        tokens.push(line.slice(lastMatch.index! + lastMatch[0].length))
+        const token = line.slice(lastMatch.index! + lastMatch[0].length)
+        if (token.length) {
+            tokens.push(token)
+        }
     }
 
     return tokens

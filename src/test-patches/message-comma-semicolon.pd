@@ -1,3 +1,5 @@
 #N canvas 537 286 755 385 12;
-#X msg 41 39 1 \, 2 \, 3 \; my-receiver-name 100 \,200\,300\;another-receiver
+#X msg 41 39 1 \, 2 \, 3 \; my-receiver-name 100 \\\,200\\\,300\\\;another-receiver
 -45 \, -12.5;
+#X msg 41 94 \; my-other-receiver 100;
+#X msg 42 151 1 2 3 \; \;;

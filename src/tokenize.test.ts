@@ -67,17 +67,40 @@ describe('tokenize', () => {
                     ';',
                     'my-receiver-name',
                     '100',
-                    ',',
-                    '200',
-                    ',',
-                    '300',
-                    ';',
-                    'another-receiver',
+                    '\\\\\\,200\\\\\\,300\\\\\\;another-receiver',
                     '-45',
                     ',',
                     '-12.5',
                 ],
                 lineIndex: 1,
+            })
+            assert.deepStrictEqual(tokenizedLines[2], {
+                lineAfterComma: undefined,
+                tokens: [
+                    '#X',
+                    'msg',
+                    '41',
+                    '94',
+                    ';',
+                    'my-other-receiver',
+                    '100',
+                ],
+                lineIndex: 3,
+            })
+            assert.deepStrictEqual(tokenizedLines[3], {
+                lineAfterComma: undefined,
+                tokens: [
+                    '#X',
+                    'msg',
+                    '42',
+                    '151',
+                    '1',
+                    '2',
+                    '3',
+                    ';',
+                    ';'
+                ],
+                lineIndex: 4,
             })
         })
     })
