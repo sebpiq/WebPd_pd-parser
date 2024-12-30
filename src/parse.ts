@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022-2023 Sébastien Piquemal <sebpiq@protonmail.com>, Chris McCormick.
  *
- * This file is part of WebPd 
+ * This file is part of WebPd
  * (see https://github.com/sebpiq/WebPd).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,9 +29,11 @@ import {
     hydrateLineAfterComma,
     hydrateNodePatch,
     hydratePatch,
+    hydrateNodeText,
+    hydrateNodeLayoutPosition,
 } from './hydrate'
 import tokenize, { Tokens, TokenizedLine } from './tokenize'
-import { PdJson, CONTROL_TYPE } from './types'
+import { PdJson } from './types'
 
 type PatchTokenizedLinesMap = { [globalId: string]: Array<TokenizedLine> }
 
@@ -48,8 +50,8 @@ const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
 
 export interface Compilation {
     pd: PdJson.Pd
-    errors: Array<ParsingWarningOrError>,
-    warnings: Array<ParsingWarningOrError>,
+    errors: Array<ParsingWarningOrError>
+    warnings: Array<ParsingWarningOrError>
     tokenizedLines: Array<TokenizedLine>
     patchTokenizedLinesMap: { [globalId: string]: Array<TokenizedLine> }
 }
@@ -99,9 +101,14 @@ export default (pdString: PdJson.PdString): CompilationResult => {
         _parseNodesAndConnections(c, patchId)
         _computePatchPortlets(c, patchId)
         if (c.patchTokenizedLinesMap[patchId]!.length) {
-            c.patchTokenizedLinesMap[patchId]!.forEach(({ tokens, lineIndex }) => {
-                c.errors.push({ message: `"${tokens[0]} ${tokens[1]}" unexpected chunk`, lineIndex })
-            })
+            c.patchTokenizedLinesMap[patchId]!.forEach(
+                ({ tokens, lineIndex }) => {
+                    c.errors.push({
+                        message: `"${tokens[0]} ${tokens[1]}" unexpected chunk`,
+                        lineIndex,
+                    })
+                }
+            )
         }
     })
 
@@ -111,7 +118,6 @@ export default (pdString: PdJson.PdString): CompilationResult => {
             warnings: c.warnings,
             errors: c.errors,
         }
-        
     } else {
         return {
             status: 0,
@@ -128,18 +134,23 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
     let patchCoordsTokens: TokenizedLine | null = null
     let iterCounter = -1
     let continueIteration = true
-    let firstLineIndex = c.tokenizedLines[0] ? c.tokenizedLines[0].lineIndex: -1
+    let firstLineIndex = c.tokenizedLines[0]
+        ? c.tokenizedLines[0].lineIndex
+        : -1
 
     while (c.tokenizedLines.length && continueIteration) {
         const { tokens, lineIndex } = c.tokenizedLines[0]!
 
         if (
-            _tokensMatch(tokens, '#N', 'struct')
-            || _tokensMatch(tokens, '#X', 'declare')
-            || _tokensMatch(tokens, '#X', 'scalar')
-            || _tokensMatch(tokens, '#X', 'f')
+            _tokensMatch(tokens, '#N', 'struct') ||
+            _tokensMatch(tokens, '#X', 'declare') ||
+            _tokensMatch(tokens, '#X', 'scalar') ||
+            _tokensMatch(tokens, '#X', 'f')
         ) {
-            c.warnings.push({ message: `"${tokens[0]} ${tokens[1]}" chunk is not supported`, lineIndex })
+            c.warnings.push({
+                message: `"${tokens[0]} ${tokens[1]}" chunk is not supported`,
+                lineIndex,
+            })
             c.tokenizedLines.shift()!
             continue
         }
@@ -212,7 +223,10 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
     }
 
     if (patchCanvasTokens === null) {
-        c.errors.push({ message: `Parsing failed #canvas missing`, lineIndex: firstLineIndex })
+        c.errors.push({
+            message: `Parsing failed #canvas missing`,
+            lineIndex: firstLineIndex,
+        })
         return
     }
 
@@ -233,7 +247,10 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
  * Use the layout of [inlet] / [outlet] objects to compute the order
  * of portlets of a subpatch.
  */
-const _computePatchPortlets = (c: Compilation, patchId: PdJson.GlobalId): void => {
+const _computePatchPortlets = (
+    c: Compilation,
+    patchId: PdJson.GlobalId
+): void => {
     const patch: PdJson.Patch = c.pd.patches[patchId]!
     const _comparePortletsId = (
         node1: PdJson.Node,
@@ -267,10 +284,7 @@ const _computePatchPortlets = (c: Compilation, patchId: PdJson.GlobalId): void =
     }
 }
 
-const _parseArrays = (
-    c: Compilation,
-    patchId: PdJson.GlobalId
-): void => {
+const _parseArrays = (c: Compilation, patchId: PdJson.GlobalId): void => {
     const patchTokenizedLines = c.patchTokenizedLinesMap[patchId]!
     const remainingTokenizedLines: Array<TokenizedLine> = []
 
@@ -299,7 +313,9 @@ const _parseArrays = (
                 // array data to add to the current array
             } else if (_tokensMatch(tokens, '#A')) {
                 if (!currentArray) {
-                    throw new Error(`line ${lineIndex}: Unsupported data chunk #A.`)
+                    throw new Error(
+                        `line ${lineIndex}: Unsupported data chunk #A.`
+                    )
                 }
                 if (currentArray.args[2] === 0) {
                     throw new Error(
@@ -331,7 +347,7 @@ const _parseArrays = (
 
 const _parseNodesAndConnections = (
     c: Compilation,
-    patchId: PdJson.GlobalId,
+    patchId: PdJson.GlobalId
 ): void => {
     const patch = c.pd.patches[patchId]!
     const patchTokenizedLines = c.patchTokenizedLinesMap[patchId]!
@@ -355,20 +371,25 @@ const _parseNodesAndConnections = (
                 NODES.some((nodeType) => _tokensMatch(tokens, '#X', nodeType))
             ) {
                 const tokenizedLine = patchTokenizedLines.shift()!
-                const nodeBase = hydrateNodeBase(nextId(), tokenizedLine.tokens)
-                if (Object.keys(CONTROL_TYPE).includes(nodeBase.type)) {
-                    node = hydrateNodeControl(nodeBase)
-                    node = hydrateLineAfterComma(
-                        node,
-                        tokenizedLine.lineAfterComma
+                const { nodeClass, type, args } = hydrateNodeBase(
+                    tokenizedLine.tokens
+                )
+                const layout = hydrateNodeLayoutPosition(tokenizedLine.tokens)
+
+                if (nodeClass === 'control') {
+                    node = hydrateNodeControl(
+                        nextId(),
+                        type as PdJson.ControlNode['type'],
+                        args,
+                        layout
                     )
+                } else if (nodeClass === 'text') {
+                    node = hydrateNodeText(nextId(), args, layout)
                 } else {
-                    node = hydrateNodeGeneric(nodeBase)
-                    node = hydrateLineAfterComma(
-                        node,
-                        tokenizedLine.lineAfterComma
-                    )
+                    node = hydrateNodeGeneric(nextId(), type, args, layout)
                 }
+
+                node = hydrateLineAfterComma(node, tokenizedLine.lineAfterComma)
             }
 
             if (node) {
@@ -388,7 +409,11 @@ const _parseNodesAndConnections = (
     c.patchTokenizedLinesMap[patchId] = remainingTokenizedLines
 }
 
-const _catchParsingErrors = (c: Compilation, lineIndex: number, func: () => void) => {
+const _catchParsingErrors = (
+    c: Compilation,
+    lineIndex: number,
+    func: () => void
+) => {
     try {
         func()
     } catch (err) {

@@ -63,6 +63,7 @@ export const pdJsonPatchDefaults = (id: PdJson.GlobalId): PdJson.Patch => ({
     outlets: [],
     inlets: [],
     connections: [],
+    layout: {},
 })
 
 export const pdJsonNodeDefaults = (
@@ -73,6 +74,7 @@ export const pdJsonNodeDefaults = (
     args: [],
     type: type || 'DUMMY',
     nodeClass: 'generic',
+    layout: {},
 })
 
 export const makeConnection = (

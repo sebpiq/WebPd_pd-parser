@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022-2023 Sébastien Piquemal <sebpiq@protonmail.com>, Chris McCormick.
  *
- * This file is part of WebPd 
+ * This file is part of WebPd
  * (see https://github.com/sebpiq/WebPd).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import {
     parseIntToken,
 } from './tokens'
 import { TokenizedLine, Tokens } from './tokenize'
-import { PdJson } from './types'
+import { CONTROL_TYPE, PdJson } from './types'
 
 /**
  * @param coordsTokenizedLine Defined only if the patch declares a graph on its parent,
@@ -127,10 +127,7 @@ export const hydrateNodePatch = (
         patchId: parseStringToken(tokens[1]),
         nodeClass: 'subpatch',
         args,
-        layout: {
-            x: parseIntToken(tokens[2]),
-            y: parseIntToken(tokens[3]),
-        },
+        layout: hydrateNodeLayoutPosition(tokens),
     }
 }
 
@@ -143,40 +140,50 @@ export const hydrateNodeArray = (
     type: 'array',
     nodeClass: 'array',
     arrayId: parseStringToken(tokens[1]),
+    layout: {},
 })
 
 export const hydrateNodeBase = (
-    id: PdJson.LocalId,
     tokens: Tokens
-): PdJson.BaseNode => {
+): {
+    type: PdJson.BaseNode['type']
+    args: Tokens
+    nodeClass: PdJson.BaseNode['nodeClass']
+} => {
     const elementType = tokens[1]
-    let type = '' // the object name
-    let args: Tokens // the construction args for the object
+    let type = ''
 
-    // 2 categories here :
-    //  - elems whose name is `elementType`
-    //  - elems whose name is `token[4]`
-    if (elementType === 'obj') {
-        type = parseStringToken(tokens[4])
-        args = tokens.slice(5)
-    } else {
-        type = parseStringToken(elementType)
-        args = tokens.slice(4)
-    }
+    switch (elementType) {
+        // If text, we need to re-join all tokens
+        case 'text':
+            return {
+                type: 'text',
+                args: [tokens.slice(4).join(' ')],
+                nodeClass: 'text',
+            }
 
-    // If text, we need to re-join all tokens
-    if (elementType === 'text') {
-        args = [tokens.slice(4).join(' ')]
-    }
+        // 2 categories here :
+        //  - elems whose name is `elementType`
+        //  - elems whose name is `token[4]`
+        case 'obj':
+            type = parseStringToken(tokens[4])
+            return {
+                type,
+                args: tokens.slice(5),
+                nodeClass: Object.keys(CONTROL_TYPE).includes(type)
+                    ? 'control'
+                    : 'generic',
+            }
 
-    return {
-        id,
-        type,
-        args,
-        layout: {
-            x: parseFloatToken(tokens[2]),
-            y: parseFloatToken(tokens[3]),
-        },
+        default:
+            type = parseStringToken(elementType)
+            return {
+                type,
+                args: tokens.slice(4),
+                nodeClass: Object.keys(CONTROL_TYPE).includes(type)
+                    ? 'control'
+                    : 'generic',
+            }
     }
 }
 
@@ -194,25 +201,43 @@ export const hydrateConnection = ({
 })
 
 export const hydrateNodeGeneric = (
-    nodeBase: PdJson.BaseNode
-): PdJson.GenericNode => {
-    const node: PdJson.GenericNode = {
-        ...nodeBase,
-        nodeClass: 'generic',
-    }
-    node.args = node.args.map(parseArg)
-    return node
-}
+    id: PdJson.LocalId,
+    type: PdJson.GenericNode['type'],
+    tokens: Tokens,
+    layout: PdJson.BaseNodeLayoutPosition
+): PdJson.GenericNode => ({
+    id,
+    type,
+    args: tokens.map(parseArg),
+    nodeClass: 'generic',
+    layout,
+})
+
+export const hydrateNodeText = (
+    id: PdJson.LocalId,
+    tokens: Tokens,
+    layout: PdJson.BaseNodeLayoutPosition
+): PdJson.TextNode => ({
+    id,
+    type: 'text',
+    args: tokens.map(parseArg),
+    nodeClass: 'text',
+    layout,
+})
 
 // This is put here just for readability of the main `parse` function
 export const hydrateNodeControl = (
-    nodeBase: PdJson.BaseNode
+    id: PdJson.LocalId,
+    type: PdJson.ControlNode['type'],
+    args: Tokens,
+    layout: PdJson.BaseNodeLayoutPosition
 ): PdJson.ControlNode => {
-    const args = nodeBase.args as Tokens
     const node: PdJson.ControlNode = {
-        ...nodeBase,
-        type: nodeBase.type as PdJson.ControlNode['type'],
+        id,
+        type,
+        args,
         nodeClass: 'control',
+        layout,
     } as PdJson.ControlNode
 
     if (
@@ -416,20 +441,9 @@ export const hydrateNodeControl = (
     return node
 }
 
-export function hydrateLineAfterComma(
-    node: PdJson.GenericNode,
-    lineAfterComma?: Tokens
-): PdJson.GenericNode
-
-export function hydrateLineAfterComma(
-    node: PdJson.ControlNode,
-    lineAfterComma?: Tokens
-): PdJson.ControlNode
-
-export function hydrateLineAfterComma(
-    node: PdJson.ControlNode | PdJson.GenericNode,
-    lineAfterComma?: Tokens
-): PdJson.ControlNode | PdJson.GenericNode {
+export function hydrateLineAfterComma<
+    NodeClass extends PdJson.ControlNode | PdJson.GenericNode | PdJson.TextNode
+>(node: NodeClass, lineAfterComma?: Tokens): NodeClass {
     // Handling stuff after the comma
     // I have no idea what's the specification for this, so this is really reverse
     // engineering on what appears in pd files.
@@ -438,10 +452,17 @@ export function hydrateLineAfterComma(
         while (afterCommaTokens.length) {
             const command = afterCommaTokens.shift()
             if (command === 'f') {
-                ;(node.layout as PdJson.BaseNode['layout'])!.width =
+                ;(node.layout as PdJson.BaseNodeLayout)!.width =
                     parseFloatToken(afterCommaTokens.shift())
             }
         }
     }
     return node
 }
+
+export const hydrateNodeLayoutPosition = (
+    tokens: Tokens
+): PdJson.BaseNodeLayoutPosition => ({
+    x: parseIntToken(tokens[2]),
+    y: parseIntToken(tokens[3]),
+})

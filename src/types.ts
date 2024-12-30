@@ -33,7 +33,9 @@ export const CONTROL_TYPE = {
     msg: 'msg',
 }
 
-export declare module PdJson {
+export declare namespace PdJson {
+
+    // ----------------------------- Base types ----------------------------- //
     // Pd file
     type PdString = string
 
@@ -66,6 +68,13 @@ export declare module PdJson {
         sink: ConnectionEndpoint
     }
 
+    interface Pd {
+        patches: { [globalId: string]: Patch }
+        arrays: { [globalId: string]: PdArray }
+        rootPatchId: GlobalId
+    }
+
+    // ----------------------------- PdArray ----------------------------- //
     interface ArrayLayout {
         drawAs?: 'polygon' | 'points' | 'bezier'
     }
@@ -85,11 +94,7 @@ export declare module PdJson {
         layout: ArrayLayout
     }
 
-    interface BaseNodeLayoutPosition {
-        x?: number
-        y?: number
-    }
-
+    // ----------------------------- Patch ----------------------------- //
     interface PatchLayout {
         /**
          * if `1` then the window opens automatically when the parent patch
@@ -163,7 +168,13 @@ export declare module PdJson {
          */
         outlets: Array<LocalId>
 
-        layout?: PatchLayout
+        layout: PatchLayout
+    }
+
+    // ----------------------------- Node ----------------------------- //
+    interface BaseNodeLayoutPosition {
+        x?: number
+        y?: number
     }
 
     interface BaseNodeLayout extends BaseNodeLayoutPosition {
@@ -175,15 +186,22 @@ export declare module PdJson {
         id: LocalId
         type: NodeType
         args: NodeArgs
-        layout?: BaseNodeLayout
-    }
-
-    interface GenericNode extends BaseNode {
         /**
          * Attribute used to distinguish between classes of nodes.
          * Mostly useful for typescript discriminated union.
          */
+        nodeClass: 'generic' | 'control' | 'subpatch' | 'array' | 'text'
+    }
+
+    interface GenericNode extends BaseNode {
         nodeClass: 'generic'
+        layout: BaseNodeLayout
+    }
+
+    interface TextNode extends BaseNode {
+        nodeClass: 'text'
+        type: 'text'
+        layout: BaseNodeLayout
     }
 
     interface BaseControlNode extends BaseNode {
@@ -209,6 +227,7 @@ export declare module PdJson {
          * Mostly useful for typescript discriminated union.
          */
         nodeClass: 'subpatch'
+        layout: BaseNodeLayout
     }
 
     interface ArrayNode extends BaseNode {
@@ -225,8 +244,12 @@ export declare module PdJson {
          * Mostly useful for typescript discriminated union.
          */
         nodeClass: 'array'
+        layout: BaseNodeLayout
     }
 
+    type Node = GenericNode | SubpatchNode | ArrayNode | ControlNode | TextNode
+
+    // ----------------------------- Specific types for controls ----------------------------- //
     type ControlNode =
         | AtomNode
         | MsgNode
@@ -238,16 +261,6 @@ export declare module PdJson {
         | VuNode
         | CnvNode
 
-    type Node = GenericNode | SubpatchNode | ArrayNode | ControlNode
-
-    interface Pd {
-        patches: { [globalId: string]: Patch }
-        arrays: { [globalId: string]: PdArray }
-        rootPatchId: GlobalId
-    }
-
-    // ------------------- Specific types for controls ------------------- //
-
     interface AtomLayout extends BaseNodeLayoutPosition {
         /** Width given in number of characters that fit horizontally in the box */
         widthInChars?: number
@@ -257,14 +270,20 @@ export declare module PdJson {
 
     interface AtomNode extends BaseControlNode {
         type: 'floatatom' | 'symbolatom' | 'listbox'
-        layout?: AtomLayout
+        layout: AtomLayout
         /** <min> <max> <receive> <send> */
         args: [number, number, string, string]
+    }
+
+    interface MsgLayout extends BaseNodeLayout {
+        // Just to uniformize layout for all control nodes
+        label?: undefined
     }
 
     interface MsgNode extends BaseControlNode {
         type: 'msg'
         args: NodeArgs
+        layout: MsgLayout
     }
 
     interface BangLayout extends BaseNodeLayoutPosition {
@@ -283,7 +302,7 @@ export declare module PdJson {
 
     interface BangNode extends BaseControlNode {
         type: 'bng'
-        layout?: BangLayout
+        layout: BangLayout
         /** <init> <receive> <send> */
         args: [0 | 1, string, string]
     }
@@ -302,7 +321,7 @@ export declare module PdJson {
 
     interface ToggleNode extends BaseControlNode {
         type: 'tgl'
-        layout?: ToggleLayout
+        layout: ToggleLayout
         /**
          * <on_value> <init> <init_value> <receive> <send>
          * - `on_value` is value when toggle is checked.
@@ -329,7 +348,7 @@ export declare module PdJson {
 
     interface NumberBoxNode extends BaseControlNode {
         type: 'nbx'
-        layout?: NumberBoxLayout
+        layout: NumberBoxLayout
         /** <min> <max> <init> <init_value> <receive> <send> */
         args: [number, number, 0 | 1, number, string, string]
     }
@@ -351,7 +370,7 @@ export declare module PdJson {
 
     interface SliderNode extends BaseControlNode {
         type: 'vsl' | 'hsl'
-        layout?: SliderLayout
+        layout: SliderLayout
         /** <min> <max> <init> <init_value> <receive> <send> */
         args: [number, number, 0 | 1, number, string, string]
     }
@@ -370,7 +389,7 @@ export declare module PdJson {
 
     interface RadioNode extends BaseControlNode {
         type: 'vradio' | 'hradio'
-        layout?: RadioLayout
+        layout: RadioLayout
         /**
          * <number> <init> <init_value> <receive> <send> <new_old>
          * - `new_old`: send new and old valud or only new value (deprecated?)
@@ -393,7 +412,7 @@ export declare module PdJson {
 
     interface VuNode extends BaseControlNode {
         type: 'vu'
-        layout?: VuLayout
+        layout: VuLayout
         /** <receive> <?> */
         args: [string, string]
     }
@@ -413,7 +432,7 @@ export declare module PdJson {
 
     interface CnvNode extends BaseControlNode {
         type: 'cnv'
-        layout?: CnvLayout
+        layout: CnvLayout
         args: [string, string, string]
     }
 }

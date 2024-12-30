@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022-2023 Sébastien Piquemal <sebpiq@protonmail.com>, Chris McCormick.
  *
- * This file is part of WebPd 
+ * This file is part of WebPd
  * (see https://github.com/sebpiq/WebPd).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,13 @@
  */
 
 import assert from 'assert'
-import parse, { _parsePatches, nextPatchId, nextArrayId, Compilation, DEFAULT_ARRAY_SIZE } from './parse'
+import parse, {
+    _parsePatches,
+    nextPatchId,
+    nextArrayId,
+    Compilation,
+    DEFAULT_ARRAY_SIZE,
+} from './parse'
 import tokenize, { TokenizedLine, Tokens } from './tokenize'
 import TEST_PATCHES from './test-patches'
 import { PdJson } from './types'
@@ -55,7 +61,11 @@ describe('parse', () => {
     describe('_parsePatches', () => {
         it('should extract nested subpatches', () => {
             const tokenizedLines = tokenize(TEST_PATCHES.subpatches)
-            const emptyPd: PdJson.Pd = { patches: {}, arrays: {}, rootPatchId: '0' }
+            const emptyPd: PdJson.Pd = {
+                patches: {},
+                arrays: {},
+                rootPatchId: '0',
+            }
             const compilation: Compilation = {
                 pd: emptyPd,
                 patchTokenizedLinesMap: {},
@@ -67,7 +77,10 @@ describe('parse', () => {
 
             const { pd, patchTokenizedLinesMap } = compilation
             assert.deepStrictEqual(compilation.tokenizedLines, [])
-            assert.strictEqual(Object.keys(compilation.patchTokenizedLinesMap).length, 3)
+            assert.strictEqual(
+                Object.keys(compilation.patchTokenizedLinesMap).length,
+                3
+            )
 
             // root patch
             assert.deepStrictEqual<PdJson.PatchLayout>(pd.patches[0]!.layout, {
@@ -361,7 +374,13 @@ describe('parse', () => {
                 type: 'symbolatom',
                 nodeClass: 'control',
                 args: [0, 0, 'symbolatomRcvBla', 'symbolatomSndBla'],
-                layout: { x: 255, y: 38, widthInChars: 10, labelPos: 0, label: '' },
+                layout: {
+                    x: 255,
+                    y: 38,
+                    widthInChars: 10,
+                    labelPos: 0,
+                    label: '',
+                },
             })
 
             assert.deepStrictEqual<PdJson.SliderNode>(patch.nodes[10], {
@@ -407,10 +426,10 @@ describe('parse', () => {
                 },
             })
 
-            assert.deepStrictEqual<PdJson.GenericNode>(patch.nodes[12], {
+            assert.deepStrictEqual<PdJson.TextNode>(patch.nodes[12], {
                 id: '12',
                 type: 'text',
-                nodeClass: 'generic',
+                nodeClass: 'text',
                 args: ['< this comment should be aligned to the hradio'],
                 layout: { x: 205, y: 308 },
             })
@@ -420,7 +439,13 @@ describe('parse', () => {
                 type: 'listbox',
                 nodeClass: 'control',
                 args: [0, 0, 'listboxRcvBla', 'listboxSndBla'],
-                layout: { x: 329, y: 26, widthInChars: 20, labelPos: 0, label: '' },
+                layout: {
+                    x: 329,
+                    y: 26,
+                    widthInChars: 20,
+                    labelPos: 0,
+                    label: '',
+                },
             })
 
             assert.deepStrictEqual<Array<PdJson.Connection>>(
@@ -516,6 +541,7 @@ describe('parse', () => {
                         nodeClass: 'array',
                         arrayId: '0',
                         args: [],
+                        layout: {},
                     },
                 },
                 connections: [],
@@ -532,6 +558,7 @@ describe('parse', () => {
                         nodeClass: 'array',
                         arrayId: '1',
                         args: [],
+                        layout: {},
                     },
                 }
             )
@@ -545,6 +572,7 @@ describe('parse', () => {
                         nodeClass: 'array',
                         arrayId: '2',
                         args: [],
+                        layout: {},
                     },
                 }
             )
@@ -669,6 +697,7 @@ describe('parse', () => {
                         nodeClass: 'array',
                         arrayId: '0',
                         args: [],
+                        layout: {},
                     },
                 },
                 connections: [],
@@ -923,11 +952,11 @@ describe('parse', () => {
             const patch = pd.patches[0]!
 
             assert.strictEqual(
-                (patch.nodes[0]!.layout! as PdJson.BaseNode['layout'])!.width,
+                (patch.nodes[0]!.layout! as PdJson.BaseNodeLayout)!.width,
                 30
             )
             assert.strictEqual(
-                (patch.nodes[1]!.layout! as PdJson.BaseNode['layout'])!.width,
+                (patch.nodes[1]!.layout! as PdJson.BaseNodeLayout)!.width,
                 40
             )
         })
@@ -987,10 +1016,10 @@ describe('parse', () => {
         })
 
         it('should return warnings when unsupported chunk', () => {
-            const pdWithUnsupportedChunks = 
-                '#N struct explode-template float x float y float velocity float channel\n' + 
-                'float duration;\n' + 
-                '#N canvas 520 35 639 570 10;\n' + 
+            const pdWithUnsupportedChunks =
+                '#N struct explode-template float x float y float velocity float channel\n' +
+                'float duration;\n' +
+                '#N canvas 520 35 639 570 10;\n' +
                 '#X declare -path ./snd/Crop -path ./snd/Crop2-44.1;\n'
 
             const parseResult = parse(pdWithUnsupportedChunks)
@@ -1000,15 +1029,14 @@ describe('parse', () => {
 
             assert.strictEqual(warnings[0]!.lineIndex, 0)
             assert.ok(warnings[0]!.message.includes('struct'))
-            
+
             assert.strictEqual(warnings[1]!.lineIndex, 3)
             assert.ok(warnings[1]!.message.includes('declare'))
         })
 
         it('should support parsing simple table without size', () => {
-            const pdTableWithoutSize = 
-                '#N canvas 0 0 450 300 12;\n'
-                + '#X obj 139 82 table BLA;\n'
+            const pdTableWithoutSize =
+                '#N canvas 0 0 450 300 12;\n' + '#X obj 139 82 table BLA;\n'
 
             const parseResult = parse(pdTableWithoutSize)
             assert.ok(parseResult.status === 0)

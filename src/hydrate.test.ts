@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022-2023 Sébastien Piquemal <sebpiq@protonmail.com>, Chris McCormick.
  *
- * This file is part of WebPd 
+ * This file is part of WebPd
  * (see https://github.com/sebpiq/WebPd).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,30 +25,34 @@ import { PdJson } from './types'
 describe('hydrate', () => {
     describe('hydrateNodeControl - hsl/vsl', () => {
         it('should hydrate hsl log value correctly', () => {
-            const node = hydrateNodeControl({
-                id: 'dummy',
-                type: 'hsl',
-                args: [
-                    101,
-                    15,
-                    1,
-                    1000,
-                    1,
-                    1,
+            const node = hydrateNodeControl(
+                'dummy',
+                'hsl',
+                [
+                    '101',
+                    '15',
+                    '1',
+                    '1000',
+                    '1',
+                    '1',
                     '',
                     '',
                     '',
-                    -2,
-                    -8,
-                    0,
-                    10,
+                    '-2',
+                    '-8',
+                    '0',
+                    '10',
                     '#fcfcfc',
                     '#000000',
                     '#000000',
-                    8300,
-                    1,
+                    '8300',
+                    '1',
                 ],
-            })
+                {
+                    x: 0,
+                    y: 0,
+                }
+            )
             assert.deepStrictEqual<PdJson.SliderNode['args']>(node.args, [
                 1,
                 1000,
@@ -60,30 +64,34 @@ describe('hydrate', () => {
         })
 
         it('should hydrate vsl lin value correctly', () => {
-            const node = hydrateNodeControl({
-                id: 'dummy',
-                type: 'vsl',
-                args: [
-                    15,
-                    201,
-                    0,
-                    1000,
-                    0,
-                    0,
+            const node = hydrateNodeControl(
+                'dummy',
+                'vsl',
+                [
+                    '15',
+                    '201',
+                    '0',
+                    '1000',
+                    '0',
+                    '0',
                     '',
                     '',
                     '',
-                    0,
-                    -9,
-                    0,
-                    10,
+                    '0',
+                    '-9',
+                    '0',
+                    '10',
                     '#fcfcfc',
                     '#000000',
                     '#000000',
-                    16800,
-                    1,
+                    '16800',
+                    '1',
                 ],
-            })
+                {
+                    x: 0,
+                    y: 0,
+                }
+            )
             assert.deepStrictEqual<PdJson.SliderNode['args']>(node.args, [
                 0,
                 1000,
@@ -95,30 +103,34 @@ describe('hydrate', () => {
         })
 
         it('should hydrate vsl log value correctly', () => {
-            const node = hydrateNodeControl({
-                id: 'dummy',
-                type: 'vsl',
-                args: [
-                    15,
-                    201,
-                    10,
-                    1000,
-                    1,
-                    1,
+            const node = hydrateNodeControl(
+                'dummy',
+                'vsl',
+                [
+                    '15',
+                    '201',
+                    '10',
+                    '1000',
+                    '1',
+                    '1',
                     '',
                     '',
                     '',
-                    0,
-                    -9,
-                    0,
-                    10,
+                    '0',
+                    '-9',
+                    '0',
+                    '10',
                     '#fcfcfc',
                     '#000000',
                     '#000000',
-                    16100,
-                    1,
+                    '16100',
+                    '1',
                 ],
-            })
+                {
+                    x: 0,
+                    y: 0,
+                }
+            )
             assert.deepStrictEqual<PdJson.SliderNode['args']>(node.args, [
                 10,
                 1000,
