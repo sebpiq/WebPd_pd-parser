@@ -1,5 +1,7 @@
 WebPd .pd file parser
-========================
+=========================
+
+A .pd file parser implemented in TypeScript. Compatible with node.js and web browsers.
 
 This is part of the [WebPd](https://github.com/sebpiq/WebPd) project, but can also be used as a standalone library.
 
