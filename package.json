@@ -16,7 +16,8 @@
         "build:dist": "npx rollup --config node_modules/@webpd/dev/configs/dist.rollup.mjs",
         "build": "npm run clean ; npm run build:dist",
         "clean": "rm -rf dist",
-        "prettier": "prettier --write --config node_modules/@webpd/dev/configs/prettier.json"
+        "prettier": "prettier --write --config node_modules/@webpd/dev/configs/prettier.json",
+        "postpublish": "git tag -a v$(node -p \"require('./package.json').version\") -m \"Release $(node -p \"require('./package.json').version\")\" ; git push --tags"
     },
     "repository": {
         "type": "git",
