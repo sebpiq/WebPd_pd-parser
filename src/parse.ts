@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { parseFloatToken, parseStringToken, ValueError } from './tokens'
+import { isNumber, parseFloatToken, parseStringToken, ValueError } from './tokens'
 import {
     hydrateArray,
     hydrateConnection,
@@ -45,6 +45,8 @@ export interface ParsingWarningOrError {
 }
 
 export const DEFAULT_ARRAY_SIZE = 100
+
+const UNNAMED_ARRAY = ''
 
 const NODES = ['obj', 'floatatom', 'symbolatom', 'listbox', 'msg', 'text']
 
@@ -75,6 +77,18 @@ nextPatchId.counter = -1
 
 export const nextArrayId = (): string => `${++nextArrayId.counter}`
 nextArrayId.counter = -1
+
+export const nextUniqueArrayName = (
+    arrays: PdJson.Pd['arrays']
+): string => {
+    let newArrayName: string
+    do {
+        newArrayName = `table${++nextUniqueArrayName.counter}`
+        // Ensure name is unique
+    } while (Object.values(arrays).some(otherArray => otherArray.args[0] == newArrayName))
+    return newArrayName
+}
+nextUniqueArrayName.counter = -1
 
 const _tokensMatch = (tokens: Tokens, ...values: Tokens): boolean =>
     values.every((value, i) => value === tokens[i])
@@ -109,6 +123,15 @@ export default (pdString: PdJson.PdString): CompilationResult => {
                     })
                 }
             )
+        }
+    })
+
+    // We assign a name to all unnamed arrays. 
+    // This is important to do last because otherwise
+    // there's a risk of collision with a name given by the user.
+    Object.values(c.pd.arrays).forEach(array => {
+        if (array.args[0] === UNNAMED_ARRAY) {
+            array.args[0] = nextUniqueArrayName(c.pd.arrays)
         }
     })
 
@@ -163,42 +186,6 @@ export const _parsePatches = (c: Compilation, isPatchRoot: boolean): void => {
 
                 // If not first line, starts a subpatch
             } else if (_tokensMatch(tokens, '#N', 'canvas')) {
-                _parsePatches(c, false)
-
-                // Table : a table subpatch
-                // It seems that a table object is just a subpatch containing an array.
-                // Therefore we add some synthetic lines to the tokenized file to simulate
-                // this subpatch.
-            } else if (
-                // prettier-ignore
-                _tokensMatch( tokens, '#X', 'obj', tokens[2]!, tokens[3]!, 'table')
-            ) {
-                const tableTokens = c.tokenizedLines.shift()!.tokens
-                c.tokenizedLines = [
-                    {
-                        // prettier-ignore
-                        tokens: [ '#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'],
-                        lineIndex,
-                    },
-                    {
-                        // prettier-ignore
-                        tokens: [ '#N', 'canvas', '0', '0', '100', '100', '(subpatch)', '0'],
-                        lineIndex,
-                    },
-                    {
-                        // prettier-ignore
-                        tokens: [ '#X', 'array', parseStringToken(tableTokens[5]), tableTokens[6] || DEFAULT_ARRAY_SIZE.toString(), 'float', '0'],
-                        lineIndex,
-                    },
-                    // prettier-ignore
-                    { tokens: ['#X', 'restore', '0', '0', 'graph'], lineIndex },
-                    {
-                        // prettier-ignore
-                        tokens: [ '#X', 'restore', tableTokens[2]!, tableTokens[3]!, 'table'],
-                        lineIndex,
-                    },
-                    ...c.tokenizedLines,
-                ]
                 _parsePatches(c, false)
 
                 // coords : visual range of framesets
@@ -310,7 +297,71 @@ const _parseArrays = (c: Compilation, patchId: PdJson.GlobalId): void => {
                     lineIndex,
                 })
 
-                // array data to add to the current array
+            // table object
+            } else if (
+                // prettier-ignore
+                _tokensMatch( tokens, '#X', 'obj', tokens[2]!, tokens[3]!, 'table')
+            ) {
+                // Keep the `table` object for later processing
+                remainingTokenizedLines.push(patchTokenizedLines.shift()!)
+                currentArray = hydrateArray(
+                    nextArrayId(),
+                    {
+                        tokens: [ '#X', 'array', parseStringToken(tokens[5]), tokens[6] || DEFAULT_ARRAY_SIZE.toString(), 'float', '0'],
+                        lineIndex,
+                    }
+                )
+                c.pd.arrays[currentArray.id] = currentArray
+
+            // array define object
+            } else if (
+                // prettier-ignore
+                _tokensMatch(tokens, '#X', 'obj', tokens[2]!, tokens[3]!, 'array', 'define')
+            ) {
+                let arrayParamsTokens = tokens.slice(6)
+                let arrayName: string | null = null
+                let arraySize: string | null = null
+                let arraySave: '0' | '1' = '0'
+                // Parse array arguments
+                while (arrayParamsTokens.length > 0) {
+                    const token = arrayParamsTokens[0]!
+                    
+                    let shiftCount = 0
+                    // -k
+                    if (token === '-k') {
+                        arraySave = '1'
+                        shiftCount = 1
+                    // -yrange low hi
+                    // -pix x y
+                    } else if (['-yrange', '-pix'].includes(token)) {
+                        shiftCount = 3
+                    }
+                    if (shiftCount > 0) {
+                        arrayParamsTokens = arrayParamsTokens.slice(shiftCount)
+                        continue
+                    }
+
+                    if (isNumber(parseInt(token, 10))) {
+                        arraySize = token
+                    } else {
+                        arrayName = parseStringToken(token)
+                    }
+                    arrayParamsTokens = arrayParamsTokens.slice(1)
+                }
+
+                // Keep the `array define` object for later processing
+                remainingTokenizedLines.push(patchTokenizedLines.shift()!)
+
+                currentArray = hydrateArray(
+                    nextArrayId(),
+                    {
+                        tokens: [ '#X', 'array', arrayName || UNNAMED_ARRAY, arraySize || DEFAULT_ARRAY_SIZE.toString(), 'float', arraySave],
+                        lineIndex,
+                    }
+                )
+                c.pd.arrays[currentArray.id] = currentArray
+
+            // array data to add to the current array
             } else if (_tokensMatch(tokens, '#A')) {
                 if (!currentArray) {
                     throw new Error(
@@ -326,7 +377,7 @@ const _parseArrays = (c: Compilation, patchId: PdJson.GlobalId): void => {
                 currentArray.data = currentData
 
                 // reads in part of an array of data, starting at the index specified in this line
-                // name of the array comes from the the '#X array' and '#X restore' matches above
+                // name of the array comes from the '#X array' and '#X restore' matches above
                 const indexOffset = parseFloatToken(tokens[1])
                 tokens.slice(2).forEach((rawVal, i) => {
                     const val = parseFloatToken(rawVal)

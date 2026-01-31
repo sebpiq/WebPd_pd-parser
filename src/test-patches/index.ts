@@ -38,6 +38,9 @@ export default {
     tables: fs
         .readFileSync(path.join(TEST_PATCHES_DIR, 'tables.pd'))
         .toString(),
+    arrayDefine: fs
+        .readFileSync(path.join(TEST_PATCHES_DIR, 'array-define.pd'))
+        .toString(),
     graphs: fs
         .readFileSync(path.join(TEST_PATCHES_DIR, 'graphs.pd'))
         .toString(),
