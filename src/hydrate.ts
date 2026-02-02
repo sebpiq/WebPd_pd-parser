@@ -133,13 +133,13 @@ export const hydrateNodePatch = (
 
 export const hydrateNodeArray = (
     id: PdJson.LocalId,
-    { tokens }: TokenizedLine
+    arrayId: PdJson.GlobalId,
 ): PdJson.ArrayNode => ({
     id,
     args: [],
     type: 'array',
     nodeClass: 'array',
-    arrayId: parseStringToken(tokens[1]),
+    arrayId: arrayId,
     layout: {},
 })
 

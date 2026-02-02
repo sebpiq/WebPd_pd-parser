@@ -668,6 +668,9 @@ describe('parse', () => {
             const array0 = pd.arrays['0']!
             const array1 = pd.arrays['1']!
 
+            // Unique array name generated if none is provided in the node.
+            const autoName = 'table0'
+
             assert.deepStrictEqual<PdJson.Patch>(patch, {
                 id: '0',
                 isRoot: true,
@@ -683,7 +686,7 @@ describe('parse', () => {
                         id: '0',
                         type: 'array',
                         nodeClass: 'generic',
-                        args: ['define'],
+                        args: ['define', '-k', autoName],
                         layout: { x: 98, y: 145 },
                     },
                     "1": {
@@ -701,7 +704,7 @@ describe('parse', () => {
 
             assert.deepStrictEqual<PdJson.PdArray>(array0, {
                 id: '0',
-                args: ['table0', 100, 0],
+                args: [autoName, 100, 0],
                 layout: {"drawAs": "polygon"},
                 data: null,
             })
