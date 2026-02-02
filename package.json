@@ -5,6 +5,7 @@
     "main": "./dist/index.js",
     "types": "./dist/src/index.d.ts",
     "type": "module",
+    "sideEffects": false,
     "license": "LGPL-3.0",
     "author": "Sébastien Piquemal",
     "private": false,
@@ -14,10 +15,11 @@
     "scripts": {
         "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --config node_modules/@webpd/dev/configs/jest.js",
         "build:dist": "npx rollup --config node_modules/@webpd/dev/configs/dist.rollup.mjs",
-        "build": "npm run clean ; npm run build:dist",
+        "build": "npm run clean && npm run build:dist",
+        "build:dev:full": "npm run build",
         "clean": "rm -rf dist",
         "prettier": "prettier --write --config node_modules/@webpd/dev/configs/prettier.json",
-        "postpublish": "git tag -a v$(node -p \"require('./package.json').version\") -m \"Release $(node -p \"require('./package.json').version\")\" ; git push --tags"
+        "postpublish": "git tag -a v$(node -p \"require('./package.json').version\") -m \"Release $(node -p \"require('./package.json').version\")\" && git push --tags"
     },
     "repository": {
         "type": "git",
@@ -28,6 +30,6 @@
     },
     "homepage": "https://github.com/sebpiq/WebPd_pd-parser#readme",
     "devDependencies": {
-        "@webpd/dev": "github:sebpiq/WebPd_dev#v1"
+        "@webpd/dev": "github:sebpiq/WebPd_dev#v2"
     }
 }

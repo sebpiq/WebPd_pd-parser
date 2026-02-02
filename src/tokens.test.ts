@@ -24,6 +24,7 @@ import {
     parseFloatToken,
     parseArg,
     parseStringToken,
+    isNumber,
     ValueError,
 } from './tokens'
 import { PdJson } from './types'
@@ -112,6 +113,20 @@ describe('tokens', () => {
             assert.throws(() => {
                 parseArg(undefined)
             })
+        })
+    })
+
+    describe('isNumber', () => {
+        it('should detect numbers correctly', () => {
+            assert.strictEqual(isNumber(1), true)
+            assert.strictEqual(isNumber(-0.9), true)
+            assert.strictEqual(isNumber(0), true)
+            assert.strictEqual(isNumber(NaN), false)
+            assert.strictEqual(isNumber(Infinity), false)
+            assert.strictEqual(isNumber(-Infinity), false)
+            assert.strictEqual(isNumber('123'), false)
+            assert.strictEqual(isNumber(undefined), false)
+            assert.strictEqual(isNumber({}), false)
         })
     })
 })

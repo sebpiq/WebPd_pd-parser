@@ -123,6 +123,6 @@ export const parseStringToken = (
 
 export class ValueError extends Error {}
 
-const isNumber = (obj: unknown): obj is number => Number.isFinite(obj)
+export const isNumber = (obj: unknown): obj is number => Number.isFinite(obj)
 
 const isString = (obj: unknown): obj is string => typeof obj === 'string'

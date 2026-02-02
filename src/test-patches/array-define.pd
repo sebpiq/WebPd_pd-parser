@@ -1,0 +1,5 @@
+#N canvas 873 356 450 300 12;
+#X obj 98 145 array define;
+#X obj 93 75 array define -k BLA 10;
+#A 0 0 1 2 3 4 5 6 7 8
+9;

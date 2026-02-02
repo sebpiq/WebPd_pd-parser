@@ -23,6 +23,7 @@ import parse, {
     _parsePatches,
     nextPatchId,
     nextArrayId,
+    nextUniqueArrayName,
     Compilation,
     DEFAULT_ARRAY_SIZE,
 } from './parse'
@@ -56,6 +57,7 @@ describe('parse', () => {
     beforeEach(() => {
         nextPatchId.counter = -1
         nextArrayId.counter = -1
+        nextUniqueArrayName.counter = -1
     })
 
     describe('_parsePatches', () => {
@@ -617,12 +619,9 @@ describe('parse', () => {
             assert.ok(parseResult.status === 0)
             const { pd } = parseResult
 
-            assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
+            assert.deepStrictEqual(Object.keys(pd.patches), ['0'])
             assert.deepStrictEqual(Object.keys(pd.arrays), ['0'])
             const patch = pd.patches['0']!
-            const graphSubpatch = pd.patches['1']!
-            const arraySubpatch = pd.patches['2']!
-
             const array = pd.arrays['0']!
 
             assert.deepStrictEqual<PdJson.Patch>(patch, {
@@ -639,65 +638,9 @@ describe('parse', () => {
                     '0': {
                         id: '0',
                         type: 'table',
-                        nodeClass: 'subpatch',
-                        args: [],
+                        nodeClass: 'generic',
+                        args: ['myTable', 35],
                         layout: { x: 290, y: 57 },
-                        patchId: '1',
-                    },
-                },
-                connections: [],
-                inlets: [],
-                outlets: [],
-            })
-
-            assert.deepStrictEqual<PdJson.Patch>(graphSubpatch, {
-                id: '1',
-                isRoot: false,
-                layout: {
-                    openOnLoad: 0,
-                    windowX: 0,
-                    windowY: 0,
-                    windowWidth: 100,
-                    windowHeight: 100,
-                },
-                args: [],
-                nodes: {
-                    '0': {
-                        id: '0',
-                        type: 'graph',
-                        nodeClass: 'subpatch',
-                        patchId: '2',
-                        args: [],
-                        layout: {
-                            x: 0,
-                            y: 0,
-                        },
-                    },
-                },
-                connections: [],
-                inlets: [],
-                outlets: [],
-            })
-
-            assert.deepStrictEqual<PdJson.Patch>(arraySubpatch, {
-                id: '2',
-                isRoot: false,
-                layout: {
-                    openOnLoad: 0,
-                    windowX: 0,
-                    windowY: 0,
-                    windowWidth: 100,
-                    windowHeight: 100,
-                },
-                args: [],
-                nodes: {
-                    '0': {
-                        id: '0',
-                        type: 'array',
-                        nodeClass: 'array',
-                        arrayId: '0',
-                        args: [],
-                        layout: {},
                     },
                 },
                 connections: [],
@@ -710,6 +653,69 @@ describe('parse', () => {
                 args: ['myTable', 35, 0],
                 layout: { drawAs: 'polygon' },
                 data: null,
+            })
+        })
+
+        it('should parse array define rightly', () => {
+            const parseResult = parse(TEST_PATCHES.arrayDefine)
+            assert.ok(parseResult.status === 0)
+            const { pd } = parseResult
+
+            assert.deepStrictEqual(Object.keys(pd.patches), ['0'])
+            assert.deepStrictEqual(Object.keys(pd.arrays), ['0', '1'])
+            const patch = pd.patches['0']!
+
+            const array0 = pd.arrays['0']!
+            const array1 = pd.arrays['1']!
+
+            // Unique array name generated if none is provided in the node.
+            const autoName = 'table0'
+
+            assert.deepStrictEqual<PdJson.Patch>(patch, {
+                id: '0',
+                isRoot: true,
+                layout: {
+                    windowX: 873,
+                    windowY: 356,
+                    windowWidth: 450,
+                    windowHeight: 300,
+                },
+                args: [],
+                nodes: {
+                    '0': {
+                        id: '0',
+                        type: 'array',
+                        nodeClass: 'generic',
+                        args: ['define', '-k', autoName],
+                        layout: { x: 98, y: 145 },
+                    },
+                    "1": {
+                        id: "1", 
+                        type: "array",
+                        nodeClass: "generic", 
+                        args: ["define", "-k", "BLA", 10], 
+                        layout: {"x": 93, "y": 75}, 
+                    }
+                },
+                connections: [],
+                inlets: [],
+                outlets: [],
+            })
+
+            assert.deepStrictEqual<PdJson.PdArray>(array0, {
+                id: '0',
+                args: [autoName, 100, 0],
+                layout: {"drawAs": "polygon"},
+                data: null,
+            })
+            
+            assert.deepStrictEqual<PdJson.PdArray>(array1, {
+                id: '1',
+                args: ['BLA', 10, 1],
+                layout: {"drawAs": "polygon"},
+                data: [
+                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+                ],
             })
         })
 
@@ -1041,12 +1047,7 @@ describe('parse', () => {
             const parseResult = parse(pdTableWithoutSize)
             assert.ok(parseResult.status === 0)
             const pd = parseResult.pd
-            assert.deepStrictEqual(Object.keys(pd.patches), ['0', '1', '2'])
-
-            const arrayNode = pd.patches['2']!.nodes['0']!
-            assert.ok(arrayNode.nodeClass === 'array')
-            assert.deepStrictEqual(arrayNode.type, 'array')
-            assert.deepStrictEqual(arrayNode.arrayId, '0')
+            assert.deepStrictEqual(Object.keys(pd.patches), ['0'])
 
             assert.deepStrictEqual(Object.keys(pd.arrays), ['0'])
             const array = pd.arrays['0']!
